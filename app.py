@@ -487,7 +487,7 @@ If you use the AIP-G 1.0 webtool in research or publications, please cite:
 > **AIP-G 1.0 Webtool**  
 > *Ajwin Joseph Martin, Dr. Dileep Kumar*  
 > Version 1.0 (2025).  
-> Webtool URL: *[insert URL]*  
+> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/*  
 
 ---
 
@@ -502,3 +502,4 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+

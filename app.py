@@ -454,9 +454,6 @@ with tab3:
 
     st.dataframe(pd.DataFrame(decoy_data))
     
-    st.info("""
-    **💡 Note on Screening Performance (Precision vs. Recall):** While the consensus model achieves high overall precision and effectively discriminates decoys, it yields a conservative recall (~43-46%) for active and highly active compounds. This is a deliberate design choice. The hierarchical consensus logic is optimized to minimize false positives, ensuring high-confidence enrichment during large-scale virtual screening rather than exhaustive hit retrieval.
-    """)
     # ------------------------------------------------------
     # 🔹 PAINS Dataset Validation Results
     # ------------------------------------------------------
@@ -469,6 +466,10 @@ with tab3:
     }
 
     st.dataframe(pd.DataFrame(pains_data))
+    
+    st.info("""
+    **💡 Note on Screening Performance (Precision vs. Recall):** While the consensus model achieves high overall precision and effectively discriminates decoys, it yields a conservative recall (~43-46%) for active and highly active compounds. This is a deliberate design choice. The hierarchical consensus logic is optimized to minimize false positives, ensuring high-confidence enrichment during large-scale virtual screening rather than exhaustive hit retrieval.
+    """)
 
 # ==========================================================
 # 4️⃣ REFERENCES TAB
@@ -553,4 +554,5 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+
 

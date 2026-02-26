@@ -50,8 +50,8 @@ def load_ad_params(model_name):
     return mean_vec, cov_inv, ad_cutoff
 
 # Load classifiers
-rf1 = joblib.load("models/RF_ActvInact.pkl")
-et1 = joblib.load("models/ET_ActvInact.pkl")
+rf1 = joblib.load("models/stage1_rf_no_smote.joblib")
+et1 = joblib.load("models/stage1_et_no_smote.joblib")
 rf2 = joblib.load("models/RF_HactAct.pkl")
 et2 = joblib.load("models/ET_HactAct.pkl")
 
@@ -548,3 +548,4 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+

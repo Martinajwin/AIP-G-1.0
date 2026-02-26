@@ -27,18 +27,28 @@ def mahalanobis_distance(X, mean_vec, cov_inv):
     return np.sqrt(np.sum(diffs @ cov_inv * diffs, axis=1))
 
 # -----------------------------
-# ✅ Label Normalization
+# ✅ Label Normalization (Updated for Numeric Outputs)
 # -----------------------------
 def normalize_label(lbl):
-    lbl = str(lbl).strip().lower()
-    if "high" in lbl:
-        return "HighlyActive"
-    elif "active" in lbl and "inactive" not in lbl:
+    # Convert numeric outputs from new models back to strings
+    lbl_str = str(lbl).strip().lower()
+    
+    if lbl_str == "0":
+        return "Inactive"
+    if lbl_str == "1":
         return "Active"
-    elif "inactive" in lbl:
+    if lbl_str == "2":
+        return "HighlyActive"
+        
+    # Standard string-based fallback
+    if "high" in lbl_str:
+        return "HighlyActive"
+    elif "active" in lbl_str and "inactive" not in lbl_str:
+        return "Active"
+    elif "inactive" in lbl_str:
         return "Inactive"
     else:
-        return lbl.capitalize()
+        return lbl_str.capitalize()
 
 # -----------------------------
 # ⚙️ Load models & AD params
@@ -548,4 +558,5 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+
 

@@ -146,9 +146,15 @@ with tab1:
         df_desc = calc.pandas(mols, nproc=1, quiet=True)
 
         # ✅ Safe feature alignment & extreme value clamping
-        def prepare_features_safe(df, features_list):
+        def prepare_features_safe(df, model):
+            # Dynamically extract the exact features and order the model expects
+            expected_features = getattr(model, "feature_names_in_", None)
+            
+            if expected_features is None:
+                raise ValueError("Model does not have 'feature_names_in_' attribute.")
+                
             df_safe = pd.DataFrame(index=df.index)
-            for f in features_list:
+            for f in expected_features:
                 if f in df.columns:
                     col = pd.to_numeric(df[f], errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
                     df_safe[f] = col
@@ -157,14 +163,15 @@ with tab1:
             
             # Clip extreme values to prevent Numpy calculation overflows
             df_safe = np.clip(df_safe.values, -1e15, 1e15)
-            return pd.DataFrame(df_safe, columns=features_list)
+            # Return DataFrame with EXACT column names and order sklearn expects
+            return pd.DataFrame(df_safe, columns=expected_features)
 
         # ==========================================================
         # 🔹 Stage 1 Prediction
         # ==========================================================
-        # Pass the exact feature lists to avoid getattr errors
-        X1_rf = prepare_features_safe(df_desc, stage1_rf_features)
-        X1_et = prepare_features_safe(df_desc, stage1_et_features)
+        # Pass the model object directly to guarantee feature matching
+        X1_rf = prepare_features_safe(df_desc, rf1)
+        X1_et = prepare_features_safe(df_desc, et1)
 
         mean_rf1, covinv_rf1, adcut_rf1 = load_ad_params("RF_ActvInact")
         mean_et1, covinv_et1, adcut_et1 = load_ad_params("ET_ActvInact")
@@ -214,8 +221,9 @@ with tab1:
             active_df = df_desc.iloc[active_indices].reset_index(drop=True)
             active_smiles = [canonical_smiles[i] for i in active_indices]
 
-            X2_rf = prepare_features_safe(active_df, stage2_rf_features)
-            X2_et = prepare_features_safe(active_df, stage2_et_features)
+        # Pass the model object directly to guarantee feature matching
+            X2_rf = prepare_features_safe(active_df, rf2)
+            X2_et = prepare_features_safe(active_df, et2)
 
             mean_rf2, covinv_rf2, adcut_rf2 = load_ad_params("RF_HactAct")
             mean_et2, covinv_et2, adcut_et2 = load_ad_params("ET_HactAct")
@@ -503,3 +511,4 @@ Until acceptance, please cite the webtool:
 > Final journal citation will be updated once published.
 > (A DOI will be added once archived.)
 """)
+

@@ -58,8 +58,9 @@ def normalize_label(lbl):
         return lbl_str.capitalize()
 
 # -----------------------------
-# ⚙️ Load models & AD params
+# ⚙️ Load models & AD params (CACHED TO PREVENT MEMORY CRASHES)
 # -----------------------------
+@st.cache_data
 def load_ad_params(model_name):
     # allow_pickle=True prevents loading errors across different numpy versions
     mean_vec = np.load(f"models/mean_{model_name}.npy", allow_pickle=True)
@@ -67,11 +68,17 @@ def load_ad_params(model_name):
     ad_cutoff = np.load(f"models/adcutoff_{model_name}.npy", allow_pickle=True)
     return mean_vec, cov_inv, ad_cutoff
 
-# Load classifiers
-rf1 = joblib.load("models/stage1_rf_no_smote.joblib")
-et1 = joblib.load("models/stage1_et_no_smote.joblib")
-rf2 = joblib.load("models/RF_HactAct.pkl")
-et2 = joblib.load("models/ET_HactAct.pkl")
+@st.cache_resource
+def load_ml_models():
+    # Caching these prevents the server from running out of RAM and crashing
+    m_rf1 = joblib.load("models/stage1_rf_no_smote.joblib")
+    m_et1 = joblib.load("models/stage1_et_no_smote.joblib")
+    m_rf2 = joblib.load("models/RF_HactAct.pkl")
+    m_et2 = joblib.load("models/ET_HactAct.pkl")
+    return m_rf1, m_et1, m_rf2, m_et2
+
+# Load classifiers ONCE into memory
+rf1, et1, rf2, et2 = load_ml_models()
 
 # -----------------------------
 # 🧩 Model Feature Lists (Updated AIP-G 1.1)
@@ -148,12 +155,9 @@ with tab1:
         df_desc = df_desc.apply(pd.to_numeric, errors="coerce")
         df_desc = df_desc.fillna(df_desc.mean(numeric_only=True)).fillna(0.0)
 
-        # ✅ Safe feature alignment
+# ✅ Safe feature alignment
         def prepare_features_safe(df, model):
-            """
-            Align descriptor DataFrame to match features used during model training.
-            Any missing features are added with zeros, and unexpected ones are dropped.
-            """
+            df_safe = df.copy() # THIS PREVENTS MEMORY CORRUPTION
             model_features = getattr(model, "feature_names_in_", None)
 
             if model_features is None:
@@ -162,19 +166,14 @@ with tab1:
                     "Please retrain with scikit-learn >=1.0."
                 )
 
-            # Ensure all expected columns exist
             for f in model_features:
-                if f not in df.columns:
-                    df[f] = 0.0
+                if f not in df_safe.columns:
+                    df_safe[f] = 0.0
 
-            # Drop unexpected columns
-            df = df.loc[:, model_features]
+            df_safe = df_safe.loc[:, model_features]
+            df_safe = df_safe.apply(pd.to_numeric, errors="coerce").fillna(0.0)
 
-            # Convert all to numeric and handle missing
-            df = df.apply(pd.to_numeric, errors="coerce").fillna(0.0)
-
-            return df
-
+            return df_safe
 
         # ==========================================================
         # 🔹 Stage 1 Prediction
@@ -566,3 +565,4 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+

@@ -18,26 +18,33 @@ from graphviz import Digraph
 # ⚙️ Mahalanobis Distance (dimension-safe)
 # -----------------------------
 def mahalanobis_distance(X, mean_vec, cov_inv):
-    n_features = X.shape[1]
+    # Ensure X is a numpy array
+    X_val = X.values if hasattr(X, 'values') else X
+    
+    # CRITICAL FIX: Ensure mean and cov_inv match the number of features in X to prevent crashes
+    n_features = X_val.shape[1]
     m_features = mean_vec.shape[0]
+    
     if n_features != m_features:
         mean_vec = mean_vec[:n_features]
         cov_inv = cov_inv[:n_features, :n_features]
-    diffs = X - mean_vec
+        
+    diffs = X_val - mean_vec
     return np.sqrt(np.sum(diffs @ cov_inv * diffs, axis=1))
 
 # -----------------------------
-# ✅ Label Normalization (Updated for Numeric Outputs)
+# ✅ Label Normalization (Fixed for numeric outputs)
 # -----------------------------
 def normalize_label(lbl):
     # Convert numeric outputs from new models back to strings
     lbl_str = str(lbl).strip().lower()
     
-    if lbl_str == "0":
+    # Map numeric outputs
+    if lbl_str == "0" or lbl_str == "0.0":
         return "Inactive"
-    if lbl_str == "1":
+    if lbl_str == "1" or lbl_str == "1.0":
         return "Active"
-    if lbl_str == "2":
+    if lbl_str == "2" or lbl_str == "2.0":
         return "HighlyActive"
         
     # Standard string-based fallback
@@ -54,9 +61,10 @@ def normalize_label(lbl):
 # ⚙️ Load models & AD params
 # -----------------------------
 def load_ad_params(model_name):
-    mean_vec = np.load(f"models/mean_{model_name}.npy")
-    cov_inv = np.load(f"models/covinv_{model_name}.npy")
-    ad_cutoff = np.load(f"models/adcutoff_{model_name}.npy")
+    # allow_pickle=True prevents loading errors across different numpy versions
+    mean_vec = np.load(f"models/mean_{model_name}.npy", allow_pickle=True)
+    cov_inv = np.load(f"models/covinv_{model_name}.npy", allow_pickle=True)
+    ad_cutoff = np.load(f"models/adcutoff_{model_name}.npy", allow_pickle=True)
     return mean_vec, cov_inv, ad_cutoff
 
 # Load classifiers
@@ -66,7 +74,7 @@ rf2 = joblib.load("models/RF_HactAct.pkl")
 et2 = joblib.load("models/ET_HactAct.pkl")
 
 # -----------------------------
-# 🧩 Model Feature Lists
+# 🧩 Model Feature Lists (Updated AIP-G 1.1)
 # -----------------------------
 stage1_rf_features = ['Xch-6d', 'nAromAtom', 'nHRing', 'C1SP2', 'SMR_VSA9', 'C3SP2', 'NssNH', 'nN', 'NaaNH', 'nHBDon', 'NaaaC', 'n6HRing',
                  'VSA_EState3', 'NsssCH', 'PEOE_VSA12', 'PEOE_VSA13', 'WPath', 'SlogP_VSA10', 'n9FRing', 'SlogP_VSA3']
@@ -138,7 +146,7 @@ with tab1:
         # 🧼 Clean descriptors
         df_desc = df_desc.replace([np.inf, -np.inf, "Error", "error"], np.nan)
         df_desc = df_desc.apply(pd.to_numeric, errors="coerce")
-        df_desc = df_desc.fillna(df_desc.mean(numeric_only=True))
+        df_desc = df_desc.fillna(df_desc.mean(numeric_only=True)).fillna(0.0)
 
         # ✅ Safe feature alignment
         def prepare_features_safe(df, model):
@@ -146,7 +154,6 @@ with tab1:
             Align descriptor DataFrame to match features used during model training.
             Any missing features are added with zeros, and unexpected ones are dropped.
             """
-            # Get the exact list of features seen by the model
             model_features = getattr(model, "feature_names_in_", None)
 
             if model_features is None:
@@ -194,6 +201,7 @@ with tab1:
             prf, pet = pred_rf1[i], pred_et1[i]
             arf, aet = ad_rf1[i], ad_et1[i]
             prb_rf, prb_et = proba_rf1[i], proba_et1[i]
+            
             if prf == pet:
                 final = prf
             elif arf == "Within" and aet == "Outside":
@@ -242,6 +250,7 @@ with tab1:
                 prf, pet = pred_rf2[i], pred_et2[i]
                 arf, aet = ad_rf2[i], ad_et2[i]
                 prb_rf, prb_et = proba_rf2[i], proba_et2[i]
+                
                 if prf == pet:
                     final = prf
                 elif arf == "Within" and aet == "Outside":
@@ -286,7 +295,6 @@ The AIP-G 1.0 pipeline implements a two-stage machine learning framework for pre
 """
     )
 
-    # ⭐ NEW HEADING BEFORE FLOWCHART 
     st.subheader("AIP-G 1.0 Flowchart Overview")
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -558,5 +566,3 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
-
-

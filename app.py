@@ -155,7 +155,7 @@ with tab1:
         df_desc = df_desc.apply(pd.to_numeric, errors="coerce")
         df_desc = df_desc.fillna(df_desc.mean(numeric_only=True)).fillna(0.0)
 
-# ✅ Safe feature alignment
+        # ✅ Safe feature alignment
         def prepare_features_safe(df, model):
             df_safe = df.copy() # THIS PREVENTS MEMORY CORRUPTION
             model_features = getattr(model, "feature_names_in_", None)
@@ -279,6 +279,7 @@ with tab1:
         csv = results.to_csv(index=False).encode("utf-8")
         st.download_button("Download Predictions CSV", data=csv, file_name="predictions.csv", mime="text/csv")
         st.success("✅ Prediction complete!")
+
 
 # ==========================================================
 # 2️⃣ PROCEDURE & FLOWCHART (Boxes in front, arrows behind)
@@ -565,4 +566,3 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
-

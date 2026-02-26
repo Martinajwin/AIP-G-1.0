@@ -58,18 +58,20 @@ et2 = joblib.load("models/ET_HactAct.pkl")
 # -----------------------------
 # 🧩 Model Feature Lists
 # -----------------------------
-stage1_rf_features = ['Xch-6d','nAromAtom','SMR_VSA9','PEOE_VSA2','Xch-5d','nHRing','NssNH',
-                      'EState_VSA8','FilterItLogS','NaaNH','SlogP_VSA1','C3SP3','C2SP2',
-                      'ATSC5dv','PEOE_VSA12','n9FRing','ECIndex','SlogP_VSA3','AATS0v','PEOE_VSA3']
-stage1_et_features = ['nHRing','Xch-6d','SMR_VSA9','nHBDon','nAromAtom','NaaNH','n9FRing',
-                      'NaaaC','PEOE_VSA8','NsssCH','PEOE_VSA12','SlogP_VSA1','C2SP2',
-                      'NaasN','SlogP_VSA10','nBondsD','SlogP_VSA3','VSA_EState3','nHetero','PEOE_VSA3']
+stage1_rf_features = ['Xch-6d', 'nAromAtom', 'nHRing', 'C1SP2', 'SMR_VSA9', 'C3SP2', 'NssNH', 'nN', 'NaaNH', 'nHBDon', 'NaaaC', 'n6HRing',
+                 'VSA_EState3', 'NsssCH', 'PEOE_VSA12', 'PEOE_VSA13', 'WPath', 'SlogP_VSA10', 'n9FRing', 'SlogP_VSA3']
+
+stage1_et_features = ['C1SP2', 'C3SP2', 'NaaNH', 'nHRing', 'NssNH', 'Xch-6d', 'n9FRing', 'nAromAtom', 'nN', 'NaaaC', 'VSA_EState7',
+                 'PEOE_VSA8', 'PEOE_VSA12', 'EState_VSA8', 'PEOE_VSA3', 'SlogP_VSA3', 'PEOE_VSA6', 'nBondsD', 'nFRing', 'C2SP3']
+
 stage2_rf_features = ['PEOE_VSA8','nAromAtom','PEOE_VSA13','ATSC5dv','Xch-6d','Xch-5d','NaasC',
                       'SlogP_VSA10','nBondsD','ATSC5v','Diameter','nN','ATSC6Z','PEOE_VSA7',
                       'C3SP2','ATSC2v','ATSC7c','ATSC8i','FCSP3','ATSC3Z']
+
 stage2_et_features = ['PEOE_VSA12','C1SP2','PEOE_VSA13','n9FRing','SMR_VSA4','NaaaC','SlogP_VSA3',
                       'SlogP_VSA4','C2SP2','Xc-5d','Xch-5d','Xch-6d','PEOE_VSA7','nHBDon',
                       'ATSC5dv','AATSC0p','SMR_VSA9','ATSC8v','PEOE_VSA4']
+
 # -----------------------------
 # ⚗️ Streamlit UI
 # -----------------------------
@@ -162,7 +164,6 @@ with tab1:
         # ==========================================================
         X1_rf = prepare_features_safe(df_desc, rf1)
         X1_et = prepare_features_safe(df_desc, et1)
-
 
         mean_rf1, covinv_rf1, adcut_rf1 = load_ad_params("RF_ActvInact")
         mean_et1, covinv_et1, adcut_et1 = load_ad_params("ET_ActvInact")
@@ -260,6 +261,7 @@ with tab1:
         csv = results.to_csv(index=False).encode("utf-8")
         st.download_button("Download Predictions CSV", data=csv, file_name="predictions.csv", mime="text/csv")
         st.success("✅ Prediction complete!")
+
 # ==========================================================
 # 2️⃣ PROCEDURE & FLOWCHART (Boxes in front, arrows behind)
 # ==========================================================
@@ -274,11 +276,9 @@ The AIP-G 1.0 pipeline implements a two-stage machine learning framework for pre
 """
     )
 
-    # ⭐ NEW HEADING BEFORE FLOWCHART (only change requested)
+    # ⭐ NEW HEADING BEFORE FLOWCHART 
     st.subheader("AIP-G 1.0 Flowchart Overview")
     st.markdown("<br>", unsafe_allow_html=True)
-
-    # Flowchart Heading (your original line restored inside tab2)
 
     # ================= FLOWCHART BELOW (UNCHANGED) =================
     dot = Digraph("TwoStageFlow", engine="dot")
@@ -403,11 +403,11 @@ with tab3:
             "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out",
             "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out"
         ],
-        "Accuracy": [0.8621, 0.8672, 0.8764, 0.8792, 0.8037, 0.8115, 0.8021, 0.8144],
-        "Precision": [0.8520, 0.9346, 0.8737, 0.9439, 0.8190, 0.8850, 0.8260, 0.8924],
-        "Recall": [0.8462, 0.9325, 0.8536, 0.9354, 0.8805, 0.9266, 0.8653, 0.9220],
-        "F1 Measure": [0.8489, 0.8672, 0.8634, 0.8792, 0.8479, 0.8115, 0.8445, 0.8144],
-        "Balanced Accuracy": [0.8611, 0.8672, 0.8749, 0.8792, 0.7802, 0.8115, 0.7832, 0.8144]
+        "Accuracy": [0.8818, 0.8840, 0.8854, 0.8891, 0.8082, 0.8096, 0.8131, 0.8164],
+        "Precision": [0.8761, 0.9451, 0.8862, 0.9504, 0.8267, 0.8853, 0.8296, 0.8902],
+        "Recall": [0.8645, 0.9390, 0.8600, 0.9387, 0.8772, 0.9243, 0.8818, 0.9262],
+        "F1 Measure": [0.8700, 0.8840, 0.8728, 0.8891, 0.8505, 0.8096, 0.8542, 0.8164],
+        "Balanced Accuracy": [0.8807, 0.8840, 0.8835, 0.8891, 0.7876, 0.8096, 0.7926, 0.8164]
     }
 
     st.dataframe(pd.DataFrame(cv_data))
@@ -536,23 +536,15 @@ in the development, validation, and deployment of **AIP-G 1.0**.
 ## How to Cite AIP-G 1.0 (Webtool Citation)
 If you use the AIP-G 1.0 webtool in research or publications, please cite:
 
-> **AIP-G 1.0 Webtool**  
-> *Ajwin Joseph Martin, Dr. Dileep Kumar*  
-> Version 1.0 (2025).  
-> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/*  
-
----
+> **AIP-G 1.0 Webtool** > *Ajwin Joseph Martin, Dr. Dileep Kumar* > Version 1.0 (2025).  
+> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/* ---
 
 ## How to Cite the Associated Research Article (Pre-publication)
 This tool accompanies an unpublished research manuscript.  
 Until acceptance, please cite the webtool:
 
-> **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease**  
-> *Ajwin Joseph Martin, Dileep Kumar.*  
-> Manuscript in preparation (2025).  
+> **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease** > *Ajwin Joseph Martin, Dileep Kumar.* > Manuscript in preparation (2025).  
 > Final journal citation will be updated once published.
 > (A DOI will be added once archived.)
 
 """)
-
-

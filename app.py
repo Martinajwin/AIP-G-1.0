@@ -13,56 +13,51 @@ from rdkit import Chem
 from mordred import Calculator, descriptors
 import joblib
 from graphviz import Digraph
+import warnings
+
+warnings.filterwarnings("ignore")
 
 # -----------------------------
-# ⚙️ Mahalanobis Distance (dimension-safe)
+# ⚙️ Mahalanobis Distance (Bulletproof against Overflow)
 # -----------------------------
 def mahalanobis_distance(X, mean_vec, cov_inv):
-    # Ensure X is a numpy array
-    X_val = X.values if hasattr(X, 'values') else X
+    # Enforce float64 to prevent "overflow encountered in reduce" crashes
+    X_val = np.array(X.values if hasattr(X, 'values') else X, dtype=np.float64)
     
-    # CRITICAL FIX: Ensure mean and cov_inv match the number of features in X to prevent crashes
     n_features = X_val.shape[1]
     m_features = mean_vec.shape[0]
     
     if n_features != m_features:
         mean_vec = mean_vec[:n_features]
         cov_inv = cov_inv[:n_features, :n_features]
-        
+    
+    mean_vec = np.array(mean_vec, dtype=np.float64)
+    cov_inv = np.array(cov_inv, dtype=np.float64)
+    
     diffs = X_val - mean_vec
-    return np.sqrt(np.sum(diffs @ cov_inv * diffs, axis=1))
+    # Calculate distance and handle any infinite values safely
+    dist = np.sqrt(np.sum(diffs @ cov_inv * diffs, axis=1))
+    return np.nan_to_num(dist, nan=9999.0, posinf=9999.0, neginf=9999.0)
 
 # -----------------------------
 # ✅ Label Normalization (Fixed for numeric outputs)
 # -----------------------------
 def normalize_label(lbl):
-    # Convert numeric outputs from new models back to strings
     lbl_str = str(lbl).strip().lower()
-    
-    # Map numeric outputs
-    if lbl_str == "0" or lbl_str == "0.0":
-        return "Inactive"
-    if lbl_str == "1" or lbl_str == "1.0":
-        return "Active"
-    if lbl_str == "2" or lbl_str == "2.0":
-        return "HighlyActive"
+    if lbl_str in ["0", "0.0"]: return "Inactive"
+    if lbl_str in ["1", "1.0"]: return "Active"
+    if lbl_str in ["2", "2.0"]: return "HighlyActive"
         
-    # Standard string-based fallback
-    if "high" in lbl_str:
-        return "HighlyActive"
-    elif "active" in lbl_str and "inactive" not in lbl_str:
-        return "Active"
-    elif "inactive" in lbl_str:
-        return "Inactive"
-    else:
-        return lbl_str.capitalize()
+    if "high" in lbl_str: return "HighlyActive"
+    elif "active" in lbl_str and "inactive" not in lbl_str: return "Active"
+    elif "inactive" in lbl_str: return "Inactive"
+    return lbl_str.capitalize()
 
 # -----------------------------
 # ⚙️ Load models & AD params (CACHED TO PREVENT MEMORY CRASHES)
 # -----------------------------
 @st.cache_data
 def load_ad_params(model_name):
-    # allow_pickle=True prevents loading errors across different numpy versions
     mean_vec = np.load(f"models/mean_{model_name}.npy", allow_pickle=True)
     cov_inv = np.load(f"models/covinv_{model_name}.npy", allow_pickle=True)
     ad_cutoff = np.load(f"models/adcutoff_{model_name}.npy", allow_pickle=True)
@@ -70,7 +65,6 @@ def load_ad_params(model_name):
 
 @st.cache_resource
 def load_ml_models():
-    # Caching these prevents the server from running out of RAM and crashing
     m_rf1 = joblib.load("models/stage1_rf_no_smote.joblib")
     m_et1 = joblib.load("models/stage1_et_no_smote.joblib")
     m_rf2 = joblib.load("models/RF_HactAct.pkl")
@@ -131,7 +125,7 @@ with tab1:
         smiles_list = [s.strip() for s in user_smiles.split("\n") if s.strip()]
 
     if st.button("🚀 Predict") and smiles_list:
-        st.info("Computing Descriptors... please wait ⏳")
+        st.info("Computing Descriptors... please wait ⏳ (This may take a minute for large datasets)")
 
         canonical_smiles, mols = [], []
         for smi in smiles_list:
@@ -146,40 +140,31 @@ with tab1:
             st.error("No valid SMILES found. Please check your input.")
             st.stop()
 
-        # 🧮 Compute Mordred descriptors
+        # 🧮 Compute Mordred descriptors 
+        # CRITICAL FIX: nproc=1 disables multiprocessing. This stops Streamlit RAM crashes!
         calc = Calculator(descriptors, ignore_3D=True)
-        df_desc = calc.pandas(mols)
+        df_desc = calc.pandas(mols, nproc=1, quiet=True)
 
-        # 🧼 Clean descriptors
-        df_desc = df_desc.replace([np.inf, -np.inf, "Error", "error"], np.nan)
-        df_desc = df_desc.apply(pd.to_numeric, errors="coerce")
-        df_desc = df_desc.fillna(df_desc.mean(numeric_only=True)).fillna(0.0)
-
-        # ✅ Safe feature alignment
-        def prepare_features_safe(df, model):
-            df_safe = df.copy() # THIS PREVENTS MEMORY CORRUPTION
-            model_features = getattr(model, "feature_names_in_", None)
-
-            if model_features is None:
-                raise ValueError(
-                    "Model does not have 'feature_names_in_' attribute. "
-                    "Please retrain with scikit-learn >=1.0."
-                )
-
-            for f in model_features:
-                if f not in df_safe.columns:
+        # ✅ Safe feature alignment & extreme value clamping
+        def prepare_features_safe(df, features_list):
+            df_safe = pd.DataFrame(index=df.index)
+            for f in features_list:
+                if f in df.columns:
+                    col = pd.to_numeric(df[f], errors="coerce").replace([np.inf, -np.inf], np.nan).fillna(0.0)
+                    df_safe[f] = col
+                else:
                     df_safe[f] = 0.0
-
-            df_safe = df_safe.loc[:, model_features]
-            df_safe = df_safe.apply(pd.to_numeric, errors="coerce").fillna(0.0)
-
-            return df_safe
+            
+            # Clip extreme values to prevent Numpy calculation overflows
+            df_safe = np.clip(df_safe.values, -1e15, 1e15)
+            return pd.DataFrame(df_safe, columns=features_list)
 
         # ==========================================================
         # 🔹 Stage 1 Prediction
         # ==========================================================
-        X1_rf = prepare_features_safe(df_desc, rf1)
-        X1_et = prepare_features_safe(df_desc, et1)
+        # Pass the exact feature lists to avoid getattr errors
+        X1_rf = prepare_features_safe(df_desc, stage1_rf_features)
+        X1_et = prepare_features_safe(df_desc, stage1_et_features)
 
         mean_rf1, covinv_rf1, adcut_rf1 = load_ad_params("RF_ActvInact")
         mean_et1, covinv_et1, adcut_et1 = load_ad_params("ET_ActvInact")
@@ -187,8 +172,8 @@ with tab1:
         md_rf1 = mahalanobis_distance(X1_rf, mean_rf1, covinv_rf1)
         md_et1 = mahalanobis_distance(X1_et, mean_et1, covinv_et1)
 
-        ad_rf1 = ["Within" if d <= adcut_rf1 else "Outside" for d in md_rf1]
-        ad_et1 = ["Within" if d <= adcut_et1 else "Outside" for d in md_et1]
+        ad_rf1 = ["Within" if d <= float(adcut_rf1) else "Outside" for d in md_rf1]
+        ad_et1 = ["Within" if d <= float(adcut_et1) else "Outside" for d in md_et1]
 
         pred_rf1 = [normalize_label(p) for p in rf1.predict(X1_rf)]
         pred_et1 = [normalize_label(p) for p in et1.predict(X1_et)]
@@ -224,11 +209,13 @@ with tab1:
         active_mask = np.array(final_stage1) == "Active"
 
         if active_mask.any():
-            active_df = df_desc.loc[active_mask].reset_index(drop=True)
-            active_smiles = [s for i, s in enumerate(canonical_smiles) if active_mask[i]]
+            # Reset index properly for safe slicing
+            active_indices = np.where(active_mask)[0]
+            active_df = df_desc.iloc[active_indices].reset_index(drop=True)
+            active_smiles = [canonical_smiles[i] for i in active_indices]
 
-            X2_rf = prepare_features_safe(active_df, rf2)
-            X2_et = prepare_features_safe(active_df, et2)
+            X2_rf = prepare_features_safe(active_df, stage2_rf_features)
+            X2_et = prepare_features_safe(active_df, stage2_et_features)
 
             mean_rf2, covinv_rf2, adcut_rf2 = load_ad_params("RF_HactAct")
             mean_et2, covinv_et2, adcut_et2 = load_ad_params("ET_HactAct")
@@ -236,8 +223,8 @@ with tab1:
             md_rf2 = mahalanobis_distance(X2_rf, mean_rf2, covinv_rf2)
             md_et2 = mahalanobis_distance(X2_et, mean_et2, covinv_et2)
 
-            ad_rf2 = ["Within" if d <= adcut_rf2 else "Outside" for d in md_rf2]
-            ad_et2 = ["Within" if d <= adcut_et2 else "Outside" for d in md_et2]
+            ad_rf2 = ["Within" if d <= float(adcut_rf2) else "Outside" for d in md_rf2]
+            ad_et2 = ["Within" if d <= float(adcut_et2) else "Outside" for d in md_et2]
 
             pred_rf2 = [normalize_label(p) for p in rf2.predict(X2_rf)]
             pred_et2 = [normalize_label(p) for p in et2.predict(X2_et)]
@@ -280,9 +267,8 @@ with tab1:
         st.download_button("Download Predictions CSV", data=csv, file_name="predictions.csv", mime="text/csv")
         st.success("✅ Prediction complete!")
 
-
 # ==========================================================
-# 2️⃣ PROCEDURE & FLOWCHART (Boxes in front, arrows behind)
+# 2️⃣ PROCEDURE & FLOWCHART
 # ==========================================================
 with tab2:
     st.header("Methodology and Working of AIP-G 1.0")
@@ -298,22 +284,18 @@ The AIP-G 1.0 pipeline implements a two-stage machine learning framework for pre
     st.subheader("AIP-G 1.0 Flowchart Overview")
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # ================= FLOWCHART BELOW (UNCHANGED) =================
     dot = Digraph("TwoStageFlow", engine="dot")
     dot.attr(rankdir="TB", splines="ortho", nodesep="0.6", ranksep="0.8")
 
-    # Nodes style
     dot.attr("node", shape="box", style="rounded,filled,solid", fontsize="10", margin="0.15,0.1")
     dot.attr("edge", style="solid", arrowhead="normal", constraint="true")
 
-    # Main nodes
     dot.node("Start", "START", fillcolor="lightblue")
     dot.node("Load", "LOAD LIBRARIES & MODELS\n• Load RDKit, Mordred, scikit-learn\n• Load RF & ET models (Stage1 & 2)\n• Load AD parameters", fillcolor="lightcyan")
     dot.node("Input", "USER INPUT\n• Enter SMILES manually\n• Upload CSV (SMILES column)", fillcolor="lightyellow")
     dot.node("Validate", "VALIDATE SMILES\n• RDKit Mol conversion\n• Remove invalid entries", fillcolor="gold")
     dot.node("Desc", "COMPUTE MORDRED DESCRIPTORS\n• ignore 3D Descriptors\n• Clean descriptor table", fillcolor="lightcoral")
 
-    # Stage 1
     dot.node("Stage1", "STAGE 1:\nActive vs Inactive", fillcolor="orange")
     dot.node("RF1", "RF MODEL (Stage 1)\n• Predict: Active / Inactive\n• Probability\n• AD status", fillcolor="lightskyblue")
     dot.node("ET1", "ET MODEL (Stage 1)\n• Predict: Active / Inactive\n• Probability\n• AD status", fillcolor="lightgreen")
@@ -330,7 +312,6 @@ The AIP-G 1.0 pipeline implements a two-stage machine learning framework for pre
     dot.node("Inactive", "INACTIVE", fillcolor="lightgray")
     dot.node("Active", "ACTIVE (to Stage 2)", fillcolor="lightgoldenrod")
 
-    # Stage 2
     dot.node("Stage2", "STAGE 2:\nHighly Active vs Active", fillcolor="lightgreen")
     dot.node("RF2", "RF MODEL (Stage 2)\n• Predict: HighlyActive / Active\n• Probability\n• AD status", fillcolor="lightskyblue")
     dot.node("ET2", "ET MODEL (Stage 2)\n• Predict: HighlyActive / Active\n• Probability\n• AD status", fillcolor="lightgreen")
@@ -344,13 +325,11 @@ The AIP-G 1.0 pipeline implements a two-stage machine learning framework for pre
     )
     dot.node("Cons2", cons2_label, fillcolor="navajowhite", width="3.5")
 
-    # Stage 2 outputs aligned horizontally
     with dot.subgraph() as s:
         s.attr(rank='same')
         s.node("Active2", "ACTIVE", fillcolor="lightyellow")
         s.node("HActive", "HIGHLY ACTIVE", fillcolor="palegreen")
 
-    # Place Merge
     with dot.subgraph() as s_merge:
         s_merge.attr(rank='min')
         s_merge.node("Merge", "FINAL MERGE & OUTPUT\n• Merge Stage1 + Stage2\n• Use Stage2 for Actives only", fillcolor="lightskyblue")
@@ -358,7 +337,6 @@ The AIP-G 1.0 pipeline implements a two-stage machine learning framework for pre
     dot.node("Display", "DISPLAY & EXPORT\n• Show table\n• Download CSV", fillcolor="lightblue")
     dot.node("End", "END", fillcolor="lightblue")
 
-    # Connections
     dot.edge("Start", "Load")
     dot.edge("Load", "Input")
     dot.edge("Input", "Validate")
@@ -383,8 +361,8 @@ The AIP-G 1.0 pipeline implements a two-stage machine learning framework for pre
     dot.edge("Merge", "Display")
     dot.edge("Display", "End")
 
-    st.graphviz_chart(dot, use_container_width=True)
-
+    # Removed use_container_width warning trigger
+    st.graphviz_chart(dot)
 
 # ==========================================================
 # 3️⃣ MODEL PERFORMANCE TAB
@@ -407,34 +385,19 @@ with tab3:
         to yield more reliable predictions, whereas uncommon scaffolds should be interpreted cautiously.
     """)
 
-    # ------------------------------------------------------
-    # 🔹 Cross Validation Results
-    # ------------------------------------------------------
     st.subheader("Cross Validation Results")
-
     cv_data = {
-        "Model": [
-            "RF (Stage 1)", "RF (Stage 1)", "ET (Stage 1)", "ET (Stage 1)",
-            "RF (Stage 2)", "RF (Stage 2)", "ET (Stage 2)", "ET (Stage 2)"
-        ],
-        "Validation Method": [
-            "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out",
-            "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out"
-        ],
+        "Model": ["RF (Stage 1)", "RF (Stage 1)", "ET (Stage 1)", "ET (Stage 1)", "RF (Stage 2)", "RF (Stage 2)", "ET (Stage 2)", "ET (Stage 2)"],
+        "Validation Method": ["10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out"],
         "Accuracy": [0.8818, 0.8840, 0.8854, 0.8891, 0.8082, 0.8096, 0.8131, 0.8164],
         "Precision": [0.8761, 0.9451, 0.8862, 0.9504, 0.8267, 0.8853, 0.8296, 0.8902],
         "Recall": [0.8645, 0.9390, 0.8600, 0.9387, 0.8772, 0.9243, 0.8818, 0.9262],
         "F1 Measure": [0.8700, 0.8840, 0.8728, 0.8891, 0.8505, 0.8096, 0.8542, 0.8164],
         "Balanced Accuracy": [0.8807, 0.8840, 0.8835, 0.8891, 0.7876, 0.8096, 0.7926, 0.8164]
     }
-
     st.dataframe(pd.DataFrame(cv_data))
 
-    # ------------------------------------------------------
-    # 🔹 Test Set Validation Results
-    # ------------------------------------------------------
     st.subheader("Test Set Validation Results")
-
     test_data = {
         "Model": ["RF (Stage 1)", "ET (Stage 1)", "RF (Stage 2)", "ET (Stage 2)"],
         "Method": ["Test Set", "Test Set", "Test Set", "Test Set"],
@@ -445,20 +408,11 @@ with tab3:
         "Specificity": [0.8830, 0.8761, 0.6813, 0.7238],
         "Balanced Accuracy": [0.8665, 0.8637, 0.7743, 0.7946]
     }
-
     st.dataframe(pd.DataFrame(test_data))
 
-    # ------------------------------------------------------
-    # 🔹 Test Set with Decoys Validation Results
-    # ------------------------------------------------------
     st.subheader("Test Set with Decoys Validation Results")
-
     decoy_data = {
-        "Model": [
-            "Stage 1 - Consensus",
-            "Stage 2 - Consensus",
-            "Overall Final Prediction (2-Stage)"
-        ],
+        "Model": ["Stage 1 - Consensus", "Stage 2 - Consensus", "Overall Final Prediction (2-Stage)"],
         "Balanced Accuracy": [0.7540, 0.4467, 0.8090],
         "Precision": [0.5014, 0.4526, 0.6025],
         "Accuracy": [0.7621, 0.3057, 0.8375],
@@ -469,20 +423,14 @@ with tab3:
         "Sensitivity Inactive": [0.9084, 0.0000, 0.9084],
         "ROC AUC": [0.8145, 0.5399, 0.8409]
     }
-
     st.dataframe(pd.DataFrame(decoy_data))
     
-    # ------------------------------------------------------
-    # 🔹 PAINS Dataset Validation Results
-    # ------------------------------------------------------
     st.subheader("PAINS Dataset Validation Results")
-
     pains_data = {
         "Predicted Class": ["Inactive", "Highly Active", "Active"],
         "Count": [224, 57, 39],
         "Percent": ["70%", "17.81%", "12.19%"]
     }
-
     st.dataframe(pd.DataFrame(pains_data))
     
     st.info("""
@@ -494,13 +442,11 @@ with tab3:
 # ==========================================================
 with tab4:
     st.header("References and Citation")
-
     st.markdown("""
 Below is the complete list of scientific literature, software tools, and computational packages used
 in the development, validation, and deployment of **AIP-G 1.0**.
 
 ---
-
 #### 1. Machine Learning & Data Processing
 1. Breiman, L. *Random Forests*. Machine Learning, 45, 5–32 (2001).  
 2. Geurts, P., Ernst, D., Wehenkel, L. *Extremely Randomized Trees*. Machine Learning, 63, 3–42 (2006).  
@@ -508,35 +454,29 @@ in the development, validation, and deployment of **AIP-G 1.0**.
 4. Chicco, D., Jurman, G. *The advantages of the Matthews correlation coefficient (MCC)*. BMC Genomics 21, 6 (2020).
 
 ---
-
 #### 2. Descriptor Generation & Cheminformatics
 1. Moriwaki et al. *Mordred: A Comprehensive Descriptor Library for Molecular Descriptors*. J. Cheminf. 10, 4 (2018).  
 2. RDKit: Open-source cheminformatics. *http://www.rdkit.org*.  
 3. Todeschini, R.; Consonni, V. *Handbook of Molecular Descriptors*. Wiley-VCH (2000).
 
 ---
-
 #### 3. Model Interpretation & Performance Evaluation
 1. Powers, D. *Evaluation: Precision, Recall, F-measure, ROC, Informedness, Markedness*. JMLT 2, 37–63 (2011).  
 2. Hand, D.J., Till, R.J. *A Simple Generalisation of the AUC for Multiclass Problems*. ML 45, 171–186 (2001).  
 3. Trenton, M. *Balanced Accuracy and Its Advantages in Imbalanced Data*. Pattern Recogn. Lett., 120 (2019).
 
 ---
-
 #### 4. Applicability Domain (AD)
 1. Sahigara, F. et al. *Comparison of Different Approaches to Define the Applicability Domain*. J. Chemometrics 26, 269–276 (2012).  
 2. Jaworska, J., Nikolova-Jeliazkova, N. *AD in QSAR Models*. Mutation Research 575, 1–2 (2005).
 
 ---
-
 #### 5. Datasets & Decoys
 1. Mysinger et al. *Directory of Useful Decoys, Enhanced (DUD-E)*. J. Med. Chem. 55, 14 (2012).  
 2. GSK-3β Bioassay Data retrieved from peer-reviewed literature (details in Supplementary Material).
 
 ---
-
 #### 6. Software, Platforms & Versions (Used in AIP-G 1.0)
-
 | Software / Package | Version | Purpose |
 |--------------------|---------|---------|
 | Python | 3.10 | Development |
@@ -547,10 +487,8 @@ in the development, validation, and deployment of **AIP-G 1.0**.
 | NumPy | 1.25.2 | Numerical computing |
 | Pandas | 2.3.2 | Data processing |
 | Graphviz | latest | Flowchart rendering |
-| Matplotlib | 3.10.6 | Internal plotting |
 
 ---
-
 ## How to Cite AIP-G 1.0 (Webtool Citation)
 If you use the AIP-G 1.0 webtool in research or publications, please cite:
 
@@ -564,5 +502,4 @@ Until acceptance, please cite the webtool:
 > **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease** > *Ajwin Joseph Martin, Dileep Kumar.* > Manuscript in preparation (2025).  
 > Final journal citation will be updated once published.
 > (A DOI will be added once archived.)
-
 """)

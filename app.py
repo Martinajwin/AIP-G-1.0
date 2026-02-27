@@ -196,7 +196,9 @@ with tab1:
         stage1_df = pd.DataFrame({
             "SMILES": canonical_smiles,
             "Stage1_RF": pred_rf1,
+            "Stage1_RF_Probability": np.round(proba_rf1, 3),
             "Stage1_ET": pred_et1,
+            "Stage1_ET_Probability": np.round(proba_et1, 3),
             "Stage1_Consensus": final_stage1
         })
 
@@ -246,7 +248,9 @@ with tab1:
         stage2_df = pd.DataFrame({
             "SMILES": active_smiles,
             "Stage2_RF": pred_rf2 if active_smiles else [],
+            "Stage2_RF_Probability": np.round(proba_rf2, 3) if active_smiles else [],
             "Stage2_ET": pred_et2 if active_smiles else [],
+            "Stage2_ET_Probability": np.round(proba_et2, 3) if active_smiles else [],
             "Stage2_Consensus": final_stage2
         })
 
@@ -468,8 +472,8 @@ with tab3:
     st.dataframe(pd.DataFrame(pains_data))
 
     st.info("""
-    **💡 Note on Screening Performance (Precision vs. Recall):** While the consensus model achieves high overall precision and effectively discriminates decoys, it yields a conservative recall (~43-46%) for active and highly active compounds. This is a deliberate design choice. The hierarchical consensus logic is optimized to minimize false positives, ensuring high-confidence enrichment during large-scale virtual screening rather than exhaustive hit retrieval.
-    """)
+    **💡 Note on Screening Performance (Precision vs. Recall):** While the consensus model achieves high overall precision and effectively discriminates decoys, it yields a conservative recall (~43-46%) for active and highly active compounds. This is a deliberate design choice. The hierarchical consensus logic is optimized to minimize false positives, ensuring high-confidence enrichment during large-scale virtual screening rather than exhaustive hit retrieval.
+    """)
 # ==========================================================
 # 4️⃣ REFERENCES TAB
 # ==========================================================
@@ -535,22 +539,15 @@ in the development, validation, and deployment of **AIP-G 1.0**.
 ## How to Cite AIP-G 1.0 (Webtool Citation)
 If you use the AIP-G 1.0 webtool in research or publications, please cite:
 
-> **AIP-G 1.0 Webtool**  
-> *Ajwin Joseph Martin, Dr. Dileep Kumar*  
-> Version 1.0 (2025).  
-> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/*  
-
----
+> **AIP-G 1.0 Webtool** > *Ajwin Joseph Martin, Dr. Dileep Kumar* > Version 1.0 (2025).  
+> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/* ---
 
 ## How to Cite the Associated Research Article (Pre-publication)
 This tool accompanies an unpublished research manuscript.  
 Until acceptance, please cite the webtool:
 
-> **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease**  
-> *Ajwin Joseph Martin, Dileep Kumar.*  
-> Manuscript in preparation (2025).  
+> **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease** > *Ajwin Joseph Martin, Dileep Kumar.* > Manuscript in preparation (2025).  
 > Final journal citation will be updated once published.
 > (A DOI will be added once archived.)
 
 """)
-

@@ -19,12 +19,12 @@ from graphviz import Digraph
 # -----------------------------
 def mahalanobis_distance(X, mean_vec, cov_inv):
     n_features = X.shape[1]
-    m_features = mean_vec.shape[0]
-    if n_features != m_features:
-        mean_vec = mean_vec[:n_features]
-        cov_inv = cov_inv[:n_features, :n_features]
-    diffs = X - mean_vec
-    return np.sqrt(np.sum(diffs @ cov_inv * diffs, axis=1))
+    m_features = mean_vec.shape[0]
+    if n_features != m_features:
+        mean_vec = mean_vec[:n_features]
+        cov_inv = cov_inv[:n_features, :n_features]
+    diffs = X - mean_vec
+    return np.sqrt(np.sum(diffs @ cov_inv * diffs, axis=1))
 
 # -----------------------------
 # ✅ Label Normalization
@@ -554,5 +554,6 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+
 
 

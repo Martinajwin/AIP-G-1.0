@@ -90,7 +90,7 @@ with tab1:
     smiles_list = []
 
     if input_option == "Upload CSV":
-        st.write("CSV must contain column heading 'SMILES' in the first column.")
+        st.write("CSV must contain column heading 'SMILES' in the first column and a maximum of 300 SMILES strings")
         uploaded_file = st.file_uploader("Upload CSV with SMILES", type=["csv"])
         if uploaded_file is not None:
             df_input = pd.read_csv(uploaded_file)
@@ -99,7 +99,7 @@ with tab1:
                 st.stop()
             smiles_list = [s for s in df_input["SMILES"] if isinstance(s, str)]
     else:
-        st.write("A minimum of 10 SMILES is recomended.")
+        st.write("A maximum of 300 SMILES and minimum of 10 SMILES is recomended.")
         user_smiles = st.text_area("Enter SMILES (one per line)")
         smiles_list = [s.strip() for s in user_smiles.split("\n") if s.strip()]
 
@@ -551,3 +551,4 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+

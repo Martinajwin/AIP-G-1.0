@@ -264,255 +264,254 @@ with tab1:
 # 2️⃣ PROCEDURE & FLOWCHART (Boxes in front, arrows behind)
 # ==========================================================
 with tab2:
-    st.header("Methodology and Working of AIP-G 1.0")
+    st.header("Methodology and Working of AIP-G 1.0")
 
-    st.markdown(
-        """
+    st.markdown(
+        """
 **Two-Stage ML Workflow for Compound Activity Prediction**
 
 The AIP-G 1.0 pipeline implements a two-stage machine learning framework for predicting GSK-3β inhibitors for Alzheimer’s disease. Here the SMILES input form manual entry or CSV is validated, canonicalized, and is used for computing predefined 1D and 2D descriptors using Mordred. These features are cleaned and standardized with standard scalar. There are 2 stages of classification, Stage 1, where Random Forest (RF) and Extra Trees (ET) models predict Active and Inactive molecules, supported by Applicability Domain (AD) checks and a consensus rule. Molecules predicted as Active move to Stage 2, where another set of RF and ET models classify Highly Active from the Active molecules, using the same AD-driven consensus logic. Also, the prediction probability in each stage is also computed. The Stage 1 and Stage 2 outputs are merged and the final prediction is then displayed, with all results available for export.
 """
-    )
+    )
 
-    # ⭐ NEW HEADING BEFORE FLOWCHART (only change requested)
-    st.subheader("AIP-G 1.0 Flowchart Overview")
-    st.markdown("<br>", unsafe_allow_html=True)
+    # ⭐ NEW HEADING BEFORE FLOWCHART (only change requested)
+    st.subheader("AIP-G 1.0 Flowchart Overview")
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    # Flowchart Heading (your original line restored inside tab2)
+    # Flowchart Heading (your original line restored inside tab2)
 
-    # ================= FLOWCHART BELOW (UNCHANGED) =================
-    dot = Digraph("TwoStageFlow", engine="dot")
-    dot.attr(rankdir="TB", splines="ortho", nodesep="0.6", ranksep="0.8")
+    # ================= FLOWCHART BELOW (UNCHANGED) =================
+    dot = Digraph("TwoStageFlow", engine="dot")
+    dot.attr(rankdir="TB", splines="ortho", nodesep="0.6", ranksep="0.8")
 
-    # Nodes style
-    dot.attr("node", shape="box", style="rounded,filled,solid", fontsize="10", margin="0.15,0.1")
-    dot.attr("edge", style="solid", arrowhead="normal", constraint="true")
+    # Nodes style
+    dot.attr("node", shape="box", style="rounded,filled,solid", fontsize="10", margin="0.15,0.1")
+    dot.attr("edge", style="solid", arrowhead="normal", constraint="true")
 
-    # Main nodes
-    dot.node("Start", "START", fillcolor="lightblue")
-    dot.node("Load", "LOAD LIBRARIES & MODELS\n• Load RDKit, Mordred, scikit-learn\n• Load RF & ET models (Stage1 & 2)\n• Load AD parameters", fillcolor="lightcyan")
-    dot.node("Input", "USER INPUT\n• Enter SMILES manually\n• Upload CSV (SMILES column)", fillcolor="lightyellow")
-    dot.node("Validate", "VALIDATE SMILES\n• RDKit Mol conversion\n• Remove invalid entries", fillcolor="gold")
-    dot.node("Desc", "COMPUTE MORDRED DESCRIPTORS\n• ignore 3D Descriptors\n• Clean descriptor table", fillcolor="lightcoral")
+    # Main nodes
+    dot.node("Start", "START", fillcolor="lightblue")
+    dot.node("Load", "LOAD LIBRARIES & MODELS\n• Load RDKit, Mordred, scikit-learn\n• Load RF & ET models (Stage1 & 2)\n• Load AD parameters", fillcolor="lightcyan")
+    dot.node("Input", "USER INPUT\n• Enter SMILES manually\n• Upload CSV (SMILES column)", fillcolor="lightyellow")
+    dot.node("Validate", "VALIDATE SMILES\n• RDKit Mol conversion\n• Remove invalid entries", fillcolor="gold")
+    dot.node("Desc", "COMPUTE MORDRED DESCRIPTORS\n• ignore 3D Descriptors\n• Clean descriptor table", fillcolor="lightcoral")
 
-    # Stage 1
-    dot.node("Stage1", "STAGE 1:\nActive vs Inactive", fillcolor="orange")
-    dot.node("RF1", "RF MODEL (Stage 1)\n• Predict: Active / Inactive\n• Probability\n• AD status", fillcolor="lightskyblue")
-    dot.node("ET1", "ET MODEL (Stage 1)\n• Predict: Active / Inactive\n• Probability\n• AD status", fillcolor="lightgreen")
-    cons1_label = (
-        "CONSENSUS LOGIC (Stage 1)\n"
-        "• If, RF1_prediction = ET1_prediction → Final = RF1/ET1\n"
-        "• If, RF1_AD = Within and ET1_AD = Outside → Final = RF1\n"
-        "• If, ET1_AD = Within and RF1_AD = Outside → Final = ET1\n"
-        "• If, ET1_AD = Outside and RF1_AD = Outside → Higher Probability Prediction\n"
-        "Output: Active / Inactive"
-    )
-    dot.node("Cons1", cons1_label, fillcolor="navajowhite", width="3.5")
+    # Stage 1
+    dot.node("Stage1", "STAGE 1:\nActive vs Inactive", fillcolor="orange")
+    dot.node("RF1", "RF MODEL (Stage 1)\n• Predict: Active / Inactive\n• Probability\n• AD status", fillcolor="lightskyblue")
+    dot.node("ET1", "ET MODEL (Stage 1)\n• Predict: Active / Inactive\n• Probability\n• AD status", fillcolor="lightgreen")
+    cons1_label = (
+        "CONSENSUS LOGIC (Stage 1)\n"
+        "• If, RF1_prediction = ET1_prediction → Final = RF1/ET1\n"
+        "• If, RF1_AD = Within and ET1_AD = Outside → Final = RF1\n"
+        "• If, ET1_AD = Within and RF1_AD = Outside → Final = ET1\n"
+        "• If, ET1_AD = Outside and RF1_AD = Outside → Higher Probability Prediction\n"
+        "Output: Active / Inactive"
+    )
+    dot.node("Cons1", cons1_label, fillcolor="navajowhite", width="3.5")
 
-    dot.node("Inactive", "INACTIVE", fillcolor="lightgray")
-    dot.node("Active", "ACTIVE (to Stage 2)", fillcolor="lightgoldenrod")
+    dot.node("Inactive", "INACTIVE", fillcolor="lightgray")
+    dot.node("Active", "ACTIVE (to Stage 2)", fillcolor="lightgoldenrod")
 
-    # Stage 2
-    dot.node("Stage2", "STAGE 2:\nHighly Active vs Active", fillcolor="lightgreen")
-    dot.node("RF2", "RF MODEL (Stage 2)\n• Predict: HighlyActive / Active\n• Probability\n• AD status", fillcolor="lightskyblue")
-    dot.node("ET2", "ET MODEL (Stage 2)\n• Predict: HighlyActive / Active\n• Probability\n• AD status", fillcolor="lightgreen")
-    cons2_label = (
-        "CONSENSUS LOGIC (Stage 2)\n"
-        "• If RF2_prediction = ET2_prediction → Final = RF2/ET2\n"
-        "• If, RF2_AD = Within and ET2_AD = Outside → Final = RF2\n"
-        "• If, ET2_AD = Within and RF2_AD = Outside → Final = ET2\n"
-        "• If, ET2_AD = Outside and RF2_AD = Outside → Higher Probability Prediction\n"
-        "Output: Highly Active / Active"
-    )
-    dot.node("Cons2", cons2_label, fillcolor="navajowhite", width="3.5")
+    # Stage 2
+    dot.node("Stage2", "STAGE 2:\nHighly Active vs Active", fillcolor="lightgreen")
+    dot.node("RF2", "RF MODEL (Stage 2)\n• Predict: HighlyActive / Active\n• Probability\n• AD status", fillcolor="lightskyblue")
+    dot.node("ET2", "ET MODEL (Stage 2)\n• Predict: HighlyActive / Active\n• Probability\n• AD status", fillcolor="lightgreen")
+    cons2_label = (
+        "CONSENSUS LOGIC (Stage 2)\n"
+        "• If RF2_prediction = ET2_prediction → Final = RF2/ET2\n"
+        "• If, RF2_AD = Within and ET2_AD = Outside → Final = RF2\n"
+        "• If, ET2_AD = Within and RF2_AD = Outside → Final = ET2\n"
+        "• If, ET2_AD = Outside and RF2_AD = Outside → Higher Probability Prediction\n"
+        "Output: Highly Active / Active"
+    )
+    dot.node("Cons2", cons2_label, fillcolor="navajowhite", width="3.5")
 
-    # Stage 2 outputs aligned horizontally
-    with dot.subgraph() as s:
-        s.attr(rank='same')
-        s.node("Active2", "ACTIVE", fillcolor="lightyellow")
-        s.node("HActive", "HIGHLY ACTIVE", fillcolor="palegreen")
+    # Stage 2 outputs aligned horizontally
+    with dot.subgraph() as s:
+        s.attr(rank='same')
+        s.node("Active2", "ACTIVE", fillcolor="lightyellow")
+        s.node("HActive", "HIGHLY ACTIVE", fillcolor="palegreen")
 
-    # Place Merge
-    with dot.subgraph() as s_merge:
-        s_merge.attr(rank='min')
-        s_merge.node("Merge", "FINAL MERGE & OUTPUT\n• Merge Stage1 + Stage2\n• Use Stage2 for Actives only", fillcolor="lightskyblue")
+    # Place Merge
+    with dot.subgraph() as s_merge:
+        s_merge.attr(rank='min')
+        s_merge.node("Merge", "FINAL MERGE & OUTPUT\n• Merge Stage1 + Stage2\n• Use Stage2 for Actives only", fillcolor="lightskyblue")
 
-    dot.node("Display", "DISPLAY & EXPORT\n• Show table\n• Download CSV", fillcolor="lightblue")
-    dot.node("End", "END", fillcolor="lightblue")
+    dot.node("Display", "DISPLAY & EXPORT\n• Show table\n• Download CSV", fillcolor="lightblue")
+    dot.node("End", "END", fillcolor="lightblue")
 
-    # Connections
-    dot.edge("Start", "Load")
-    dot.edge("Load", "Input")
-    dot.edge("Input", "Validate")
-    dot.edge("Validate", "Desc")
-    dot.edge("Desc", "Stage1")
-    dot.edge("Stage1", "RF1")
-    dot.edge("Stage1", "ET1")
-    dot.edge("RF1", "Cons1")
-    dot.edge("ET1", "Cons1")
-    dot.edge("Cons1", "Inactive", minlen="0.4")
-    dot.edge("Cons1", "Active", minlen="0.4")
-    dot.edge("Active", "Stage2", minlen="0.4")
-    dot.edge("Stage2", "ET2")
-    dot.edge("Stage2", "RF2")
-    dot.edge("RF2", "Cons2")
-    dot.edge("ET2", "Cons2")
-    dot.edge("Cons2", "Active2")
-    dot.edge("Cons2", "HActive")
-    dot.edge("Inactive", "Merge")
-    dot.edge("Active2", "Merge")
-    dot.edge("HActive", "Merge")
-    dot.edge("Merge", "Display")
-    dot.edge("Display", "End")
+    # Connections
+    dot.edge("Start", "Load")
+    dot.edge("Load", "Input")
+    dot.edge("Input", "Validate")
+    dot.edge("Validate", "Desc")
+    dot.edge("Desc", "Stage1")
+    dot.edge("Stage1", "RF1")
+    dot.edge("Stage1", "ET1")
+    dot.edge("RF1", "Cons1")
+    dot.edge("ET1", "Cons1")
+    dot.edge("Cons1", "Inactive", minlen="0.4")
+    dot.edge("Cons1", "Active", minlen="0.4")
+    dot.edge("Active", "Stage2", minlen="0.4")
+    dot.edge("Stage2", "ET2")
+    dot.edge("Stage2", "RF2")
+    dot.edge("RF2", "Cons2")
+    dot.edge("ET2", "Cons2")
+    dot.edge("Cons2", "Active2")
+    dot.edge("Cons2", "HActive")
+    dot.edge("Inactive", "Merge")
+    dot.edge("Active2", "Merge")
+    dot.edge("HActive", "Merge")
+    dot.edge("Merge", "Display")
+    dot.edge("Display", "End")
 
-    st.graphviz_chart(dot, use_container_width=True)
+    st.graphviz_chart(dot, use_container_width=True)
 
 
 # ==========================================================
 # 3️⃣ MODEL PERFORMANCE TAB
 # ==========================================================
 with tab3:
-    st.header("AIP-G 1.0 Evaluation Results")
+    st.header("AIP-G 1.0 Evaluation Results")
 
-    st.write("""
-        The model was built on a training set of 4,701 molecules for Stage 1 and 2,461 molecules for Stage 2. 
-        Multiple levels of validation were performed, including 10-Fold Cross Validation and Leave-One-Out Cross Validation, 
-        followed by external test set validation using 2,015 molecules (Stage 1) and 616 molecules (Stage 2). 
+    st.write("""
+        The model was built on a training set of 4,701 molecules for Stage 1 and 2,461 molecules for Stage 2. 
+        Multiple levels of validation were performed, including 10-Fold Cross Validation and Leave-One-Out Cross Validation, 
+        followed by external test set validation using 2,015 molecules (Stage 1) and 616 molecules (Stage 2). 
 
-        Additionally, a combined test set of 2,555 molecules with decoys and a PAINS dataset were used to assess 
-        the predictive robustness of the model.
+        Additionally, a combined test set of 2,555 molecules with decoys and a PAINS dataset were used to assess 
+        the predictive robustness of the model.
 
-        Applicability domain (AD) analysis of the training set showed that the model primarily learns from aromatic 
-        and heteroaromatic scaffolds, predominantly benzene and pyridine, followed by isoquinoline and quinoline rings. 
-        Other notable scaffolds included pyrazole, indole, pyrrole, thiophene, furan, benzofuran, and chromene. 
-        Molecules containing these ring systems fall within well-represented regions of chemical space and are expected 
-        to yield more reliable predictions, whereas uncommon scaffolds should be interpreted cautiously.
-    """)
+        Applicability domain (AD) analysis of the training set showed that the model primarily learns from aromatic 
+        and heteroaromatic scaffolds, predominantly benzene and pyridine, followed by isoquinoline and quinoline rings. 
+        Other notable scaffolds included pyrazole, indole, pyrrole, thiophene, furan, benzofuran, and chromene. 
+        Molecules containing these ring systems fall within well-represented regions of chemical space and are expected 
+        to yield more reliable predictions, whereas uncommon scaffolds should be interpreted cautiously.
+    """)
 
-    # ------------------------------------------------------
-    # 🔹 Cross Validation Results
-    # ------------------------------------------------------
-    st.subheader("Cross Validation Results")
+    # ------------------------------------------------------
+    # 🔹 Cross Validation Results
+    # ------------------------------------------------------
+    st.subheader("Cross Validation Results")
 
-    cv_data = {
-        "Model": [
-            "RF (Stage 1)", "RF (Stage 1)", "ET (Stage 1)", "ET (Stage 1)",
-            "RF (Stage 2)", "RF (Stage 2)", "ET (Stage 2)", "ET (Stage 2)"
-        ],
-        "Validation Method": [
-            "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out",
-            "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out"
-        ],
-        "Accuracy": [0.8621, 0.8672, 0.8764, 0.8792, 0.8037, 0.8115, 0.8021, 0.8144],
-        "Precision": [0.8520, 0.9346, 0.8737, 0.9439, 0.8190, 0.8850, 0.8260, 0.8924],
-        "Recall": [0.8462, 0.9325, 0.8536, 0.9354, 0.8805, 0.9266, 0.8653, 0.9220],
-        "F1 Measure": [0.8489, 0.8672, 0.8634, 0.8792, 0.8479, 0.8115, 0.8445, 0.8144],
-        "Balanced Accuracy": [0.8611, 0.8672, 0.8749, 0.8792, 0.7802, 0.8115, 0.7832, 0.8144]
-    }
+    cv_data = {
+        "Model": [
+            "RF (Stage 1)", "RF (Stage 1)", "ET (Stage 1)", "ET (Stage 1)",
+            "RF (Stage 2)", "RF (Stage 2)", "ET (Stage 2)", "ET (Stage 2)"
+        ],
+        "Validation Method": [
+            "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out",
+            "10-Fold CV", "Leave One Out", "10-Fold CV", "Leave One Out"
+        ],
+        "Accuracy": [0.8621, 0.8672, 0.8764, 0.8792, 0.8037, 0.8115, 0.8021, 0.8144],
+        "Precision": [0.8520, 0.9346, 0.8737, 0.9439, 0.8190, 0.8850, 0.8260, 0.8924],
+        "Recall": [0.8462, 0.9325, 0.8536, 0.9354, 0.8805, 0.9266, 0.8653, 0.9220],
+        "F1 Measure": [0.8489, 0.8672, 0.8634, 0.8792, 0.8479, 0.8115, 0.8445, 0.8144],
+        "Balanced Accuracy": [0.8611, 0.8672, 0.8749, 0.8792, 0.7802, 0.8115, 0.7832, 0.8144]
+    }
 
-    st.dataframe(pd.DataFrame(cv_data))
+    st.dataframe(pd.DataFrame(cv_data))
 
-    # ------------------------------------------------------
-    # 🔹 Test Set Validation Results
-    # ------------------------------------------------------
-    st.subheader("Test Set Validation Results")
+    # ------------------------------------------------------
+    # 🔹 Test Set Validation Results
+    # ------------------------------------------------------
+    st.subheader("Test Set Validation Results")
 
-    test_data = {
-        "Model": ["RF (Stage 1)", "ET (Stage 1)", "RF (Stage 2)", "ET (Stage 2)"],
-        "Method": ["Test Set", "Test Set", "Test Set", "Test Set"],
-        "Accuracy": [0.8679, 0.8646, 0.8000, 0.8142],
-        "Precision": [0.8607, 0.8552, 0.8277, 0.8471],
-        "Recall": [0.8501, 0.8513, 0.8673, 0.8654],
-        "F1 Measure": [0.8554, 0.8532, 0.8470, 0.8561],
-        "Specificity": [0.8830, 0.8761, 0.6813, 0.7238],
-        "Balanced Accuracy": [0.8665, 0.8637, 0.7743, 0.7946]
-    }
+    test_data = {
+        "Model": ["RF (Stage 1)", "ET (Stage 1)", "RF (Stage 2)", "ET (Stage 2)"],
+        "Method": ["Test Set", "Test Set", "Test Set", "Test Set"],
+        "Accuracy": [0.8679, 0.8646, 0.8000, 0.8142],
+        "Precision": [0.8607, 0.8552, 0.8277, 0.8471],
+        "Recall": [0.8501, 0.8513, 0.8673, 0.8654],
+        "F1 Measure": [0.8554, 0.8532, 0.8470, 0.8561],
+        "Specificity": [0.8830, 0.8761, 0.6813, 0.7238],
+        "Balanced Accuracy": [0.8665, 0.8637, 0.7743, 0.7946]
+    }
 
-    st.dataframe(pd.DataFrame(test_data))
+    st.dataframe(pd.DataFrame(test_data))
 
-    # ------------------------------------------------------
-    # 🔹 Test Set with Decoys Validation Results
-    # ------------------------------------------------------
-    st.subheader("Test Set with Decoys Validation Results")
+    # ------------------------------------------------------
+    # 🔹 Test Set with Decoys Validation Results
+    # ------------------------------------------------------
+    st.subheader("Test Set with Decoys Validation Results")
 
-    decoy_data = {
-        "Model": [
-            "Stage 1 - Consensus",
-            "Stage 2 - Consensus",
-            "Overall Final Prediction (2-Stage)"
-        ],
-        "Balanced Accuracy": [0.7540, 0.4467, 0.8090],
-        "Precision": [0.5014, 0.4526, 0.6025],
-        "Accuracy": [0.7621, 0.3057, 0.8375],
-        "Recall": [0.7540, 0.4467, 0.8090],
-        "F1 Score": [0.7487, 0.3615, 0.8214],
-        "Sensitivity Active": [0.5960, 0.7288, 0.4343],
-        "Sensitivity Highly Active": [0.0000, 0.6290, 0.4648],
-        "Sensitivity Inactive": [0.9084, 0.0000, 0.9084],
-        "ROC AUC": [0.8145, 0.5399, 0.8409]
-    }
+    decoy_data = {
+        "Model": [
+            "Stage 1 - Consensus",
+            "Stage 2 - Consensus",
+            "Overall Final Prediction (2-Stage)"
+        ],
+        "Balanced Accuracy": [0.7540, 0.4467, 0.8090],
+        "Precision": [0.5014, 0.4526, 0.6025],
+        "Accuracy": [0.7621, 0.3057, 0.8375],
+        "Recall": [0.7540, 0.4467, 0.8090],
+        "F1 Score": [0.7487, 0.3615, 0.8214],
+        "Sensitivity Active": [0.5960, 0.7288, 0.4343],
+        "Sensitivity Highly Active": [0.0000, 0.6290, 0.4648],
+        "Sensitivity Inactive": [0.9084, 0.0000, 0.9084],
+        "ROC AUC": [0.8145, 0.5399, 0.8409]
+    }
 
-    st.dataframe(pd.DataFrame(decoy_data))
-    
-    # ------------------------------------------------------
-    # 🔹 PAINS Dataset Validation Results
-    # ------------------------------------------------------
-    st.subheader("PAINS Dataset Validation Results")
+    st.dataframe(pd.DataFrame(decoy_data))
 
-    pains_data = {
-        "Predicted Class": ["Inactive", "Highly Active", "Active"],
-        "Count": [224, 57, 39],
-        "Percent": ["70%", "17.81%", "12.19%"]
-    }
+    # ------------------------------------------------------
+    # 🔹 PAINS Dataset Validation Results
+    # ------------------------------------------------------
+    st.subheader("PAINS Dataset Validation Results")
 
-    st.dataframe(pd.DataFrame(pains_data))
-    
+    pains_data = {
+        "Predicted Class": ["Inactive", "Highly Active", "Active"],
+        "Count": [224, 57, 39],
+        "Percent": ["70%", "17.81%", "12.19%"]
+    }
+
+    st.dataframe(pd.DataFrame(pains_data))
+
     st.info("""
     **💡 Note on Screening Performance (Precision vs. Recall):** While the consensus model achieves high overall precision and effectively discriminates decoys, it yields a conservative recall (~43-46%) for active and highly active compounds. This is a deliberate design choice. The hierarchical consensus logic is optimized to minimize false positives, ensuring high-confidence enrichment during large-scale virtual screening rather than exhaustive hit retrieval.
     """)
-
 # ==========================================================
 # 4️⃣ REFERENCES TAB
 # ==========================================================
 with tab4:
-    st.header("References and Citation")
+    st.header("References and Citation")
 
-    st.markdown("""
+    st.markdown("""
 Below is the complete list of scientific literature, software tools, and computational packages used
 in the development, validation, and deployment of **AIP-G 1.0**.
 
 ---
 
 #### 1. Machine Learning & Data Processing
-1. Breiman, L. *Random Forests*. Machine Learning, 45, 5–32 (2001).  
-2. Geurts, P., Ernst, D., Wehenkel, L. *Extremely Randomized Trees*. Machine Learning, 63, 3–42 (2006).  
-3. Pedregosa et al. *Scikit-Learn: Machine Learning in Python*. JMLR 12, 2825–2830 (2011).  
+1. Breiman, L. *Random Forests*. Machine Learning, 45, 5–32 (2001).  
+2. Geurts, P., Ernst, D., Wehenkel, L. *Extremely Randomized Trees*. Machine Learning, 63, 3–42 (2006).  
+3. Pedregosa et al. *Scikit-Learn: Machine Learning in Python*. JMLR 12, 2825–2830 (2011).  
 4. Chicco, D., Jurman, G. *The advantages of the Matthews correlation coefficient (MCC)*. BMC Genomics 21, 6 (2020).
 
 ---
 
 #### 2. Descriptor Generation & Cheminformatics
-1. Moriwaki et al. *Mordred: A Comprehensive Descriptor Library for Molecular Descriptors*. J. Cheminf. 10, 4 (2018).  
-2. RDKit: Open-source cheminformatics. *http://www.rdkit.org*.  
+1. Moriwaki et al. *Mordred: A Comprehensive Descriptor Library for Molecular Descriptors*. J. Cheminf. 10, 4 (2018).  
+2. RDKit: Open-source cheminformatics. *http://www.rdkit.org*.  
 3. Todeschini, R.; Consonni, V. *Handbook of Molecular Descriptors*. Wiley-VCH (2000).
 
 ---
 
 #### 3. Model Interpretation & Performance Evaluation
-1. Powers, D. *Evaluation: Precision, Recall, F-measure, ROC, Informedness, Markedness*. JMLT 2, 37–63 (2011).  
-2. Hand, D.J., Till, R.J. *A Simple Generalisation of the AUC for Multiclass Problems*. ML 45, 171–186 (2001).  
+1. Powers, D. *Evaluation: Precision, Recall, F-measure, ROC, Informedness, Markedness*. JMLT 2, 37–63 (2011).  
+2. Hand, D.J., Till, R.J. *A Simple Generalisation of the AUC for Multiclass Problems*. ML 45, 171–186 (2001).  
 3. Trenton, M. *Balanced Accuracy and Its Advantages in Imbalanced Data*. Pattern Recogn. Lett., 120 (2019).
 
 ---
 
 #### 4. Applicability Domain (AD)
-1. Sahigara, F. et al. *Comparison of Different Approaches to Define the Applicability Domain*. J. Chemometrics 26, 269–276 (2012).  
+1. Sahigara, F. et al. *Comparison of Different Approaches to Define the Applicability Domain*. J. Chemometrics 26, 269–276 (2012).  
 2. Jaworska, J., Nikolova-Jeliazkova, N. *AD in QSAR Models*. Mutation Research 575, 1–2 (2005).
 
 ---
 
 #### 5. Datasets & Decoys
-1. Mysinger et al. *Directory of Useful Decoys, Enhanced (DUD-E)*. J. Med. Chem. 55, 14 (2012).  
+1. Mysinger et al. *Directory of Useful Decoys, Enhanced (DUD-E)*. J. Med. Chem. 55, 14 (2012).  
 2. GSK-3β Bioassay Data retrieved from peer-reviewed literature (details in Supplementary Material).
 
 ---
@@ -536,25 +535,21 @@ in the development, validation, and deployment of **AIP-G 1.0**.
 ## How to Cite AIP-G 1.0 (Webtool Citation)
 If you use the AIP-G 1.0 webtool in research or publications, please cite:
 
-> **AIP-G 1.0 Webtool**  
-> *Ajwin Joseph Martin, Dr. Dileep Kumar*  
-> Version 1.0 (2025).  
-> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/*  
+> **AIP-G 1.0 Webtool**  
+> *Ajwin Joseph Martin, Dr. Dileep Kumar*  
+> Version 1.0 (2025).  
+> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/*  
 
 ---
 
 ## How to Cite the Associated Research Article (Pre-publication)
-This tool accompanies an unpublished research manuscript.  
+This tool accompanies an unpublished research manuscript.  
 Until acceptance, please cite the webtool:
 
-> **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease**  
-> *Ajwin Joseph Martin, Dileep Kumar.*  
-> Manuscript in preparation (2025).  
+> **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease**  
+> *Ajwin Joseph Martin, Dileep Kumar.*  
+> Manuscript in preparation (2025).  
 > Final journal citation will be updated once published.
 > (A DOI will be added once archived.)
 
 """)
-
-
-
-

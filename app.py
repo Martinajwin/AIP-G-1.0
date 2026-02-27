@@ -30,24 +30,24 @@ def mahalanobis_distance(X, mean_vec, cov_inv):
 # ✅ Label Normalization
 # -----------------------------
 def normalize_label(lbl):
-    lbl = str(lbl).strip().lower()
-    if "high" in lbl:
-        return "HighlyActive"
-    elif "active" in lbl and "inactive" not in lbl:
-        return "Active"
-    elif "inactive" in lbl:
-        return "Inactive"
-    else:
-        return lbl.capitalize()
+    lbl = str(lbl).strip().lower()
+    if "high" in lbl:
+        return "HighlyActive"
+    elif "active" in lbl and "inactive" not in lbl:
+        return "Active"
+    elif "inactive" in lbl:
+        return "Inactive"
+    else:
+        return lbl.capitalize()
 
 # -----------------------------
 # ⚙️ Load models & AD params
 # -----------------------------
 def load_ad_params(model_name):
-    mean_vec = np.load(f"models/mean_{model_name}.npy")
-    cov_inv = np.load(f"models/covinv_{model_name}.npy")
-    ad_cutoff = np.load(f"models/adcutoff_{model_name}.npy")
-    return mean_vec, cov_inv, ad_cutoff
+    mean_vec = np.load(f"models/mean_{model_name}.npy")
+    cov_inv = np.load(f"models/covinv_{model_name}.npy")
+    ad_cutoff = np.load(f"models/adcutoff_{model_name}.npy")
+    return mean_vec, cov_inv, ad_cutoff
 
 # Load classifiers
 rf1 = joblib.load("models/RF_ActvInact.pkl")
@@ -59,23 +59,23 @@ et2 = joblib.load("models/ET_HactAct.pkl")
 # 🧩 Model Feature Lists
 # -----------------------------
 stage1_rf_features = ['Xch-6d','nAromAtom','SMR_VSA9','PEOE_VSA2','Xch-5d','nHRing','NssNH',
-                      'EState_VSA8','FilterItLogS','NaaNH','SlogP_VSA1','C3SP3','C2SP2',
-                      'ATSC5dv','PEOE_VSA12','n9FRing','ECIndex','SlogP_VSA3','AATS0v','PEOE_VSA3']
+                      'EState_VSA8','FilterItLogS','NaaNH','SlogP_VSA1','C3SP3','C2SP2',
+                      'ATSC5dv','PEOE_VSA12','n9FRing','ECIndex','SlogP_VSA3','AATS0v','PEOE_VSA3']
 stage1_et_features = ['nHRing','Xch-6d','SMR_VSA9','nHBDon','nAromAtom','NaaNH','n9FRing',
-                      'NaaaC','PEOE_VSA8','NsssCH','PEOE_VSA12','SlogP_VSA1','C2SP2',
-                      'NaasN','SlogP_VSA10','nBondsD','SlogP_VSA3','VSA_EState3','nHetero','PEOE_VSA3']
+                      'NaaaC','PEOE_VSA8','NsssCH','PEOE_VSA12','SlogP_VSA1','C2SP2',
+                      'NaasN','SlogP_VSA10','nBondsD','SlogP_VSA3','VSA_EState3','nHetero','PEOE_VSA3']
 stage2_rf_features = ['PEOE_VSA8','nAromAtom','PEOE_VSA13','ATSC5dv','Xch-6d','Xch-5d','NaasC',
-                      'SlogP_VSA10','nBondsD','ATSC5v','Diameter','nN','ATSC6Z','PEOE_VSA7',
-                      'C3SP2','ATSC2v','ATSC7c','ATSC8i','FCSP3','ATSC3Z']
+                      'SlogP_VSA10','nBondsD','ATSC5v','Diameter','nN','ATSC6Z','PEOE_VSA7',
+                      'C3SP2','ATSC2v','ATSC7c','ATSC8i','FCSP3','ATSC3Z']
 stage2_et_features = ['PEOE_VSA12','C1SP2','PEOE_VSA13','n9FRing','SMR_VSA4','NaaaC','SlogP_VSA3',
-                      'SlogP_VSA4','C2SP2','Xc-5d','Xch-5d','Xch-6d','PEOE_VSA7','nHBDon',
-                      'ATSC5dv','AATSC0p','SMR_VSA9','ATSC8v','PEOE_VSA4']
+                      'SlogP_VSA4','C2SP2','Xc-5d','Xch-5d','Xch-6d','PEOE_VSA7','nHBDon',
+                      'ATSC5dv','AATSC0p','SMR_VSA9','ATSC8v','PEOE_VSA4']
 # -----------------------------
 # ⚗️ Streamlit UI
 # -----------------------------
 st.set_page_config(page_title="AIP-G 1.0", layout="wide")
 
-st.title("Alzheimer’s disease, Inhibitor Predictor for GSK-3β (1.0)")  
+st.title("Alzheimer’s disease, Inhibitor Predictor for GSK-3β (1.0)")  
 st.subheader("(AIP-G 1.0)")
 tabs = st.tabs(["1️⃣ Molecule Screening", "2️⃣ Methodology", "3️⃣ Model Performance", "4️⃣ References and Citation"])
 tab1, tab2, tab3, tab4 = tabs
@@ -84,182 +84,182 @@ tab1, tab2, tab3, tab4 = tabs
 # 1️⃣ SCREENING TAB
 # ==========================================================
 with tab1:
-    st.title("Predict GSK-3β inhibitors for Alzheimer’s Disease")
+    st.title("Predict GSK-3β inhibitors for Alzheimer’s Disease")
 
-    input_option = st.radio("Input Type:", ["Enter SMILES manually", "Upload CSV"])
-    smiles_list = []
+    input_option = st.radio("Input Type:", ["Enter SMILES manually", "Upload CSV"])
+    smiles_list = []
 
-    if input_option == "Upload CSV":
-        st.write("CSV must contain column heading 'SMILES' in the first column.")
-        uploaded_file = st.file_uploader("Upload CSV with SMILES", type=["csv"])
-        if uploaded_file is not None:
-            df_input = pd.read_csv(uploaded_file)
-            if "SMILES" not in df_input.columns:
-                st.error("CSV must contain a 'SMILES' column.")
-                st.stop()
-            smiles_list = [s for s in df_input["SMILES"] if isinstance(s, str)]
-    else:
-        st.write("A minimum of 10 SMILES is recomended.")
-        user_smiles = st.text_area("Enter SMILES (one per line)")
-        smiles_list = [s.strip() for s in user_smiles.split("\n") if s.strip()]
+    if input_option == "Upload CSV":
+        st.write("CSV must contain column heading 'SMILES' in the first column.")
+        uploaded_file = st.file_uploader("Upload CSV with SMILES", type=["csv"])
+        if uploaded_file is not None:
+            df_input = pd.read_csv(uploaded_file)
+            if "SMILES" not in df_input.columns:
+                st.error("CSV must contain a 'SMILES' column.")
+                st.stop()
+            smiles_list = [s for s in df_input["SMILES"] if isinstance(s, str)]
+    else:
+        st.write("A minimum of 10 SMILES is recomended.")
+        user_smiles = st.text_area("Enter SMILES (one per line)")
+        smiles_list = [s.strip() for s in user_smiles.split("\n") if s.strip()]
 
-    if st.button("🚀 Predict") and smiles_list:
-        st.info("Computing Descriptors... please wait ⏳")
+    if st.button("🚀 Predict") and smiles_list:
+        st.info("Computing Descriptors... please wait ⏳")
 
-        canonical_smiles, mols = [], []
-        for smi in smiles_list:
-            mol = Chem.MolFromSmiles(smi)
-            if mol:
-                canonical_smiles.append(Chem.MolToSmiles(mol, canonical=True))
-                mols.append(mol)
-            else:
-                st.warning(f"Invalid SMILES skipped: {smi}")
+        canonical_smiles, mols = [], []
+        for smi in smiles_list:
+            mol = Chem.MolFromSmiles(smi)
+            if mol:
+                canonical_smiles.append(Chem.MolToSmiles(mol, canonical=True))
+                mols.append(mol)
+            else:
+                st.warning(f"Invalid SMILES skipped: {smi}")
 
-        if len(mols) == 0:
-            st.error("No valid SMILES found. Please check your input.")
-            st.stop()
+        if len(mols) == 0:
+            st.error("No valid SMILES found. Please check your input.")
+            st.stop()
 
-        # 🧮 Compute Mordred descriptors
-        calc = Calculator(descriptors, ignore_3D=True)
-        df_desc = calc.pandas(mols)
+        # 🧮 Compute Mordred descriptors
+        calc = Calculator(descriptors, ignore_3D=True)
+        df_desc = calc.pandas(mols)
 
-        # 🧼 Clean descriptors
-        df_desc = df_desc.replace([np.inf, -np.inf, "Error", "error"], np.nan)
-        df_desc = df_desc.apply(pd.to_numeric, errors="coerce")
-        df_desc = df_desc.fillna(df_desc.mean(numeric_only=True))
+        # 🧼 Clean descriptors
+        df_desc = df_desc.replace([np.inf, -np.inf, "Error", "error"], np.nan)
+        df_desc = df_desc.apply(pd.to_numeric, errors="coerce")
+        df_desc = df_desc.fillna(df_desc.mean(numeric_only=True))
 
-        # ✅ Safe feature alignment
-        def prepare_features_safe(df, model):
-            """
-            Align descriptor DataFrame to match features used during model training.
-            Any missing features are added with zeros, and unexpected ones are dropped.
-            """
-            # Get the exact list of features seen by the model
-            model_features = getattr(model, "feature_names_in_", None)
+        # ✅ Safe feature alignment
+        def prepare_features_safe(df, model):
+            """
+            Align descriptor DataFrame to match features used during model training.
+            Any missing features are added with zeros, and unexpected ones are dropped.
+            """
+            # Get the exact list of features seen by the model
+            model_features = getattr(model, "feature_names_in_", None)
 
-            if model_features is None:
-                raise ValueError(
-                    "Model does not have 'feature_names_in_' attribute. "
-                    "Please retrain with scikit-learn >=1.0."
-                )
+            if model_features is None:
+                raise ValueError(
+                    "Model does not have 'feature_names_in_' attribute. "
+                    "Please retrain with scikit-learn >=1.0."
+                )
 
-            # Ensure all expected columns exist
-            for f in model_features:
-                if f not in df.columns:
-                    df[f] = 0.0
+            # Ensure all expected columns exist
+            for f in model_features:
+                if f not in df.columns:
+                    df[f] = 0.0
 
-            # Drop unexpected columns
-            df = df.loc[:, model_features]
+            # Drop unexpected columns
+            df = df.loc[:, model_features]
 
-            # Convert all to numeric and handle missing
-            df = df.apply(pd.to_numeric, errors="coerce").fillna(0.0)
+            # Convert all to numeric and handle missing
+            df = df.apply(pd.to_numeric, errors="coerce").fillna(0.0)
 
-            return df
-
-
-        # ==========================================================
-        # 🔹 Stage 1 Prediction
-        # ==========================================================
-        X1_rf = prepare_features_safe(df_desc, rf1)
-        X1_et = prepare_features_safe(df_desc, et1)
+            return df
 
 
-        mean_rf1, covinv_rf1, adcut_rf1 = load_ad_params("RF_ActvInact")
-        mean_et1, covinv_et1, adcut_et1 = load_ad_params("ET_ActvInact")
+        # ==========================================================
+        # 🔹 Stage 1 Prediction
+        # ==========================================================
+        X1_rf = prepare_features_safe(df_desc, rf1)
+        X1_et = prepare_features_safe(df_desc, et1)
 
-        md_rf1 = mahalanobis_distance(X1_rf, mean_rf1, covinv_rf1)
-        md_et1 = mahalanobis_distance(X1_et, mean_et1, covinv_et1)
 
-        ad_rf1 = ["Within" if d <= adcut_rf1 else "Outside" for d in md_rf1]
-        ad_et1 = ["Within" if d <= adcut_et1 else "Outside" for d in md_et1]
+        mean_rf1, covinv_rf1, adcut_rf1 = load_ad_params("RF_ActvInact")
+        mean_et1, covinv_et1, adcut_et1 = load_ad_params("ET_ActvInact")
 
-        pred_rf1 = [normalize_label(p) for p in rf1.predict(X1_rf)]
-        pred_et1 = [normalize_label(p) for p in et1.predict(X1_et)]
-        proba_rf1 = rf1.predict_proba(X1_rf)[:, 1]
-        proba_et1 = et1.predict_proba(X1_et)[:, 1]
+        md_rf1 = mahalanobis_distance(X1_rf, mean_rf1, covinv_rf1)
+        md_et1 = mahalanobis_distance(X1_et, mean_et1, covinv_et1)
 
-        final_stage1 = []
-        for i in range(len(canonical_smiles)):
-            prf, pet = pred_rf1[i], pred_et1[i]
-            arf, aet = ad_rf1[i], ad_et1[i]
-            prb_rf, prb_et = proba_rf1[i], proba_et1[i]
-            if prf == pet:
-                final = prf
-            elif arf == "Within" and aet == "Outside":
-                final = prf
-            elif aet == "Within" and arf == "Outside":
-                final = pet
-            else:
-                final = prf if prb_rf >= prb_et else pet
-            final_stage1.append(final)
+        ad_rf1 = ["Within" if d <= adcut_rf1 else "Outside" for d in md_rf1]
+        ad_et1 = ["Within" if d <= adcut_et1 else "Outside" for d in md_et1]
 
-        stage1_df = pd.DataFrame({
-            "SMILES": canonical_smiles,
-            "Stage1_RF": pred_rf1,
-            "Stage1_ET": pred_et1,
-            "Stage1_Consensus": final_stage1
-        })
+        pred_rf1 = [normalize_label(p) for p in rf1.predict(X1_rf)]
+        pred_et1 = [normalize_label(p) for p in et1.predict(X1_et)]
+        proba_rf1 = rf1.predict_proba(X1_rf)[:, 1]
+        proba_et1 = et1.predict_proba(X1_et)[:, 1]
 
-        # ==========================================================
-        # 🔹 Stage 2 Prediction (Highly Active vs Active)
-        # ==========================================================
-        active_mask = np.array(final_stage1) == "Active"
+        final_stage1 = []
+        for i in range(len(canonical_smiles)):
+            prf, pet = pred_rf1[i], pred_et1[i]
+            arf, aet = ad_rf1[i], ad_et1[i]
+            prb_rf, prb_et = proba_rf1[i], proba_et1[i]
+            if prf == pet:
+                final = prf
+            elif arf == "Within" and aet == "Outside":
+                final = prf
+            elif aet == "Within" and arf == "Outside":
+                final = pet
+            else:
+                final = prf if prb_rf >= prb_et else pet
+            final_stage1.append(final)
 
-        if active_mask.any():
-            active_df = df_desc.loc[active_mask].reset_index(drop=True)
-            active_smiles = [s for i, s in enumerate(canonical_smiles) if active_mask[i]]
+        stage1_df = pd.DataFrame({
+            "SMILES": canonical_smiles,
+            "Stage1_RF": pred_rf1,
+            "Stage1_ET": pred_et1,
+            "Stage1_Consensus": final_stage1
+        })
 
-            X2_rf = prepare_features_safe(active_df, rf2)
-            X2_et = prepare_features_safe(active_df, et2)
+        # ==========================================================
+        # 🔹 Stage 2 Prediction (Highly Active vs Active)
+        # ==========================================================
+        active_mask = np.array(final_stage1) == "Active"
 
-            mean_rf2, covinv_rf2, adcut_rf2 = load_ad_params("RF_HactAct")
-            mean_et2, covinv_et2, adcut_et2 = load_ad_params("ET_HactAct")
+        if active_mask.any():
+            active_df = df_desc.loc[active_mask].reset_index(drop=True)
+            active_smiles = [s for i, s in enumerate(canonical_smiles) if active_mask[i]]
 
-            md_rf2 = mahalanobis_distance(X2_rf, mean_rf2, covinv_rf2)
-            md_et2 = mahalanobis_distance(X2_et, mean_et2, covinv_et2)
+            X2_rf = prepare_features_safe(active_df, rf2)
+            X2_et = prepare_features_safe(active_df, et2)
 
-            ad_rf2 = ["Within" if d <= adcut_rf2 else "Outside" for d in md_rf2]
-            ad_et2 = ["Within" if d <= adcut_et2 else "Outside" for d in md_et2]
+            mean_rf2, covinv_rf2, adcut_rf2 = load_ad_params("RF_HactAct")
+            mean_et2, covinv_et2, adcut_et2 = load_ad_params("ET_HactAct")
 
-            pred_rf2 = [normalize_label(p) for p in rf2.predict(X2_rf)]
-            pred_et2 = [normalize_label(p) for p in et2.predict(X2_et)]
-            proba_rf2 = rf2.predict_proba(X2_rf)[:, 1]
-            proba_et2 = et2.predict_proba(X2_et)[:, 1]
+            md_rf2 = mahalanobis_distance(X2_rf, mean_rf2, covinv_rf2)
+            md_et2 = mahalanobis_distance(X2_et, mean_et2, covinv_et2)
 
-            final_stage2 = []
-            for i in range(len(active_smiles)):
-                prf, pet = pred_rf2[i], pred_et2[i]
-                arf, aet = ad_rf2[i], ad_et2[i]
-                prb_rf, prb_et = proba_rf2[i], proba_et2[i]
-                if prf == pet:
-                    final = prf
-                elif arf == "Within" and aet == "Outside":
-                    final = prf
-                elif aet == "Within" and arf == "Outside":
-                    final = pet
-                else:
-                    final = prf if prb_rf >= prb_et else pet
-                final_stage2.append(final)
-        else:
-            active_smiles, final_stage2 = [], []
+            ad_rf2 = ["Within" if d <= adcut_rf2 else "Outside" for d in md_rf2]
+            ad_et2 = ["Within" if d <= adcut_et2 else "Outside" for d in md_et2]
 
-        stage2_df = pd.DataFrame({
-            "SMILES": active_smiles,
-            "Stage2_RF": pred_rf2 if active_smiles else [],
-            "Stage2_ET": pred_et2 if active_smiles else [],
-            "Stage2_Consensus": final_stage2
-        })
+            pred_rf2 = [normalize_label(p) for p in rf2.predict(X2_rf)]
+            pred_et2 = [normalize_label(p) for p in et2.predict(X2_et)]
+            proba_rf2 = rf2.predict_proba(X2_rf)[:, 1]
+            proba_et2 = et2.predict_proba(X2_et)[:, 1]
 
-        # ==========================================================
-        # 🧩 Combine Results
-        # ==========================================================
-        results = pd.merge(stage1_df, stage2_df, on="SMILES", how="left")
-        results["Final_Prediction"] = results["Stage2_Consensus"].fillna(results["Stage1_Consensus"])
+            final_stage2 = []
+            for i in range(len(active_smiles)):
+                prf, pet = pred_rf2[i], pred_et2[i]
+                arf, aet = ad_rf2[i], ad_et2[i]
+                prb_rf, prb_et = proba_rf2[i], proba_et2[i]
+                if prf == pet:
+                    final = prf
+                elif arf == "Within" and aet == "Outside":
+                    final = prf
+                elif aet == "Within" and arf == "Outside":
+                    final = pet
+                else:
+                    final = prf if prb_rf >= prb_et else pet
+                final_stage2.append(final)
+        else:
+            active_smiles, final_stage2 = [], []
 
-        st.dataframe(results)
-        csv = results.to_csv(index=False).encode("utf-8")
-        st.download_button("Download Predictions CSV", data=csv, file_name="predictions.csv", mime="text/csv")
-        st.success("✅ Prediction complete!")
+        stage2_df = pd.DataFrame({
+            "SMILES": active_smiles,
+            "Stage2_RF": pred_rf2 if active_smiles else [],
+            "Stage2_ET": pred_et2 if active_smiles else [],
+            "Stage2_Consensus": final_stage2
+        })
+
+        # ==========================================================
+        # 🧩 Combine Results
+        # ==========================================================
+        results = pd.merge(stage1_df, stage2_df, on="SMILES", how="left")
+        results["Final_Prediction"] = results["Stage2_Consensus"].fillna(results["Stage1_Consensus"])
+
+        st.dataframe(results)
+        csv = results.to_csv(index=False).encode("utf-8")
+        st.download_button("Download Predictions CSV", data=csv, file_name="predictions.csv", mime="text/csv")
+        st.success("✅ Prediction complete!")
 # ==========================================================
 # 2️⃣ PROCEDURE & FLOWCHART (Boxes in front, arrows behind)
 # ==========================================================
@@ -554,6 +554,7 @@ Until acceptance, please cite the webtool:
 > (A DOI will be added once archived.)
 
 """)
+
 
 
 

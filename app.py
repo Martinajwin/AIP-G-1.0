@@ -475,7 +475,9 @@ with tab3:
     **💡 Note on Screening Performance (Precision vs. Recall):** While the consensus model achieves high overall precision and effectively discriminates decoys, it yields a conservative recall (~43-46%) for active and highly active compounds. This is a deliberate design choice. The hierarchical consensus logic is optimized to minimize false positives, ensuring high-confidence enrichment during large-scale virtual screening rather than exhaustive hit retrieval.
     **💡 Note on Screening Performance (PAINS):** While the AIP-G 1.0 web tool successfully identifies and rejects 70% of known PAINS compounds, it is important to acknowledge the limitation of a ~30% false-positive rate. Because of this, it is designed to serve as a primary filter. For a more strict screening, users are strongly advised to combine the AIP-G 1.0 predictions with a standard structural PAINS filter.
     """)
-
+    st.info("""
+    **💡 Note on Screening Performance (PAINS):** While the AIP-G 1.0 web tool successfully identifies and rejects 70% of known PAINS compounds, it is important to acknowledge the limitation of a ~30% false-positive rate. Because of this, it is designed to serve as a primary filter. For a more strict screening, users are strongly advised to combine the AIP-G 1.0 predictions with a standard structural PAINS filter.
+    """)
 
 # ==========================================================
 # 4️⃣ REFERENCES TAB

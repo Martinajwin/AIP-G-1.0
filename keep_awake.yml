@@ -10,4 +10,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Streamlit App
-        run: curl -s https://your-app-url.streamlit.app > /dev/null
+        run: curl -s https://aip-g-1-two-stage-screening.streamlit.app/ > /dev/null

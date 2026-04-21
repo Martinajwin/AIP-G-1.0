@@ -2,8 +2,9 @@ name: Keep Streamlit Awake
 
 on:
   schedule:
-    # Runs every 12 hours
+    # Runs every 1 hour
     - cron: "0 */1 * * *"
+  workflow_dispatch:  # <--- ADD THIS EXACT LINE
 
 jobs:
   ping:

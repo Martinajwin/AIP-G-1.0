@@ -484,73 +484,61 @@ with tab3:
 with tab4:
     st.header("References and Citation")
 
-    st.markdown("""
-Below is the complete list of scientific literature, software tools, and computational packages used
-in the development, validation, and deployment of **AIP-G 1.0**.
+    st.markdown("### How to Cite AIP-G 1.0 (Webtool Citation)")
+    st.markdown("If you use the AIP-G 1.0 webtool in research or publications, please cite:")
+    
+    st.info("**AIP-G 1.0 Webtool** | Ajwin Joseph Martin, Dr. Dileep Kumar | Version 1.0 (2025).  \n**Webtool URL:** *https://aip-g-1-two-stage-screening.streamlit.app/*")
 
----
+    st.markdown("### How to Cite the Associated Research Article (Pre-publication)")
+    st.markdown("This tool accompanies an unpublished research manuscript. Until acceptance, please cite the webtool as follows:")
+    
+    st.info("**AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease** | Ajwin Joseph Martin, Dileep Kumar. | *Manuscript in preparation* (2025).")
+
+    st.markdown("*(Final journal citation and DOI will be updated here once published and archived.)*")
+
+    st.markdown("---")
+
+    st.markdown("""
+### Scientific Literature & Computational Packages
+Below is the complete list of scientific literature, software tools, and computational packages used in the development, validation, and deployment of AIP-G 1.0.
 
 #### 1. Machine Learning & Data Processing
-1. Breiman, L. *Random Forests*. Machine Learning, 45, 5–32 (2001).  
-2. Geurts, P., Ernst, D., Wehenkel, L. *Extremely Randomized Trees*. Machine Learning, 63, 3–42 (2006).  
-3. Pedregosa et al. *Scikit-Learn: Machine Learning in Python*. JMLR 12, 2825–2830 (2011).  
-4. Chicco, D., Jurman, G. *The advantages of the Matthews correlation coefficient (MCC)*. BMC Genomics 21, 6 (2020).
-
----
+* **Breiman, L.** Random Forests. *Machine Learning*, 45, 5–32 (2001).
+* **Geurts, P., Ernst, D., Wehenkel, L.** Extremely Randomized Trees. *Machine Learning*, 63, 3–42 (2006).
+* **Pedregosa et al.** Scikit-Learn: Machine Learning in Python. *JMLR* 12, 2825–2830 (2011).
+* **Chicco, D., Jurman, G.** The advantages of the Matthews correlation coefficient (MCC). *BMC Genomics* 21, 6 (2020).
 
 #### 2. Descriptor Generation & Cheminformatics
-1. Moriwaki et al. *Mordred: A Comprehensive Descriptor Library for Molecular Descriptors*. J. Cheminf. 10, 4 (2018).  
-2. RDKit: Open-source cheminformatics. *http://www.rdkit.org*.  
-3. Todeschini, R.; Consonni, V. *Handbook of Molecular Descriptors*. Wiley-VCH (2000).
-
----
+* **Moriwaki et al.** Mordred: A Comprehensive Descriptor Library for Molecular Descriptors. *J. Cheminf.* 10, 4 (2018).
+* **RDKit:** Open-source cheminformatics. [http://www.rdkit.org](http://www.rdkit.org).
+* **Todeschini, R., Consonni, V.** Handbook of Molecular Descriptors. *Wiley-VCH* (2000).
 
 #### 3. Model Interpretation & Performance Evaluation
-1. Powers, D. *Evaluation: Precision, Recall, F-measure, ROC, Informedness, Markedness*. JMLT 2, 37–63 (2011).  
-2. Hand, D.J., Till, R.J. *A Simple Generalisation of the AUC for Multiclass Problems*. ML 45, 171–186 (2001).  
-3. Trenton, M. *Balanced Accuracy and Its Advantages in Imbalanced Data*. Pattern Recogn. Lett., 120 (2019).
-
----
+* **Powers, D.** Evaluation: Precision, Recall, F-measure, ROC, Informedness, Markedness. *JMLT* 2, 37–63 (2011).
+* **Hand, D.J., Till, R.J.** A Simple Generalisation of the AUC for Multiclass Problems. *Machine Learning* 45, 171–186 (2001).
+* **Trenton, M.** Balanced Accuracy and Its Advantages in Imbalanced Data. *Pattern Recogn. Lett.*, 120 (2019).
 
 #### 4. Applicability Domain (AD)
-1. Sahigara, F. et al. *Comparison of Different Approaches to Define the Applicability Domain*. J. Chemometrics 26, 269–276 (2012).  
-2. Jaworska, J., Nikolova-Jeliazkova, N. *AD in QSAR Models*. Mutation Research 575, 1–2 (2005).
-
----
+* **Sahigara, F. et al.** Comparison of Different Approaches to Define the Applicability Domain. *J. Chemometrics* 26, 269–276 (2012).
+* **Jaworska, J., Nikolova-Jeliazkova, N.** AD in QSAR Models. *Mutation Research* 575, 1–2 (2005).
 
 #### 5. Datasets & Decoys
-1. Mysinger et al. *Directory of Useful Decoys, Enhanced (DUD-E)*. J. Med. Chem. 55, 14 (2012).  
-2. GSK-3β Bioassay Data retrieved from peer-reviewed literature (details in Supplementary Material).
-
----
+* **Mysinger et al.** Directory of Useful Decoys, Enhanced (DUD-E). *J. Med. Chem.* 55, 14 (2012).
+* **GSK-3β Bioassay Data:** Retrieved from peer-reviewed literature *(details in Supplementary Material)*.
 
 #### 6. Software, Platforms & Versions (Used in AIP-G 1.0)
-
 | Software / Package | Version | Purpose |
-|--------------------|---------|---------|
-| Python | 3.10 | Development |
-| Streamlit | 1.50 | Web interface |
-| RDKit | 2025.03.6 | SMILES handling |
-| Mordred | 1.2.0 | Descriptor generation |
-| scikit-learn | 1.4.2 | ML modelling |
-| NumPy | 1.25.2 | Numerical computing |
-| Pandas | 2.3.2 | Data processing |
-| Graphviz | latest | Flowchart rendering |
-| Matplotlib | 3.10.6 | Internal plotting |
-
----
-
-## How to Cite AIP-G 1.0 (Webtool Citation)
-If you use the AIP-G 1.0 webtool in research or publications, please cite:
-
-> **AIP-G 1.0 Webtool** > *Ajwin Joseph Martin, Dr. Dileep Kumar* > Version 1.0 (2025).  
-> Webtool URL: *https://aip-g-1-two-stage-screening.streamlit.app/* ---
-
-## How to Cite the Associated Research Article (Pre-publication)
-This tool accompanies an unpublished research manuscript.  
-Until acceptance, please cite the webtool:
-
-> **AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease** > *Ajwin Joseph Martin, Dileep Kumar.* > Manuscript in preparation (2025).  
+| :--- | :--- | :--- |
+| **Python** | 3.10 | Development |
+| **Streamlit** | 1.50 | Web interface |
+| **RDKit** | 2025.03.6 | SMILES handling |
+| **Mordred** | 1.2.0 | Descriptor generation |
+| **scikit-learn** | 1.4.2 | ML modelling |
+| **NumPy** | 1.25.2 | Numerical computing |
+| **Pandas** | 2.3.2 | Data processing |
+| **Graphviz** | latest | Flowchart rendering |
+| **Matplotlib** | 3.10.6 | Internal plotting |
+    """)
 > Final journal citation will be updated once published.
 > (A DOI will be added once archived.)
 

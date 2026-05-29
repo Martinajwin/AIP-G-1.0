@@ -539,8 +539,5 @@ Below is the complete list of scientific literature, software tools, and computa
 | **Graphviz** | latest | Flowchart rendering |
 | **Matplotlib** | 3.10.6 | Internal plotting |
     """)
-> Final journal citation will be updated once published.
-> (A DOI will be added once archived.)
-
-""")
+    
 

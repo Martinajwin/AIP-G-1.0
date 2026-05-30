@@ -487,12 +487,12 @@ with tab4:
     st.markdown("### How to Cite AIP-G 1.0 (Webtool Citation)")
     st.markdown("If you use the AIP-G 1.0 webtool in research or publications, please cite:")
     
-    st.info("**AIP-G 1.0 Webtool** | Ajwin Joseph Martin, Dr. Dileep Kumar | Version 1.0 (2025).  \n**Webtool URL:** *https://aip-g-1-two-stage-screening.streamlit.app/*")
+    st.info("**AIP-G 1.0 Webtool** |  Dileep Kumar et al. | Version 1.0 (2025).  \n**Webtool URL:** *https://aip-g-1-two-stage-screening.streamlit.app/*")
 
     st.markdown("### How to Cite the Associated Research Article (Pre-publication)")
     st.markdown("This tool accompanies an unpublished research manuscript. Until acceptance, please cite the webtool as follows:")
     
-    st.info("**AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease** | Ajwin Joseph Martin, Dileep Kumar. | *Manuscript in preparation* (2025).")
+    st.info("**AIP-G 1.0: Machine Learning Based Virtual Screening and Molecular Dynamics Simulations for GSK3β Inhibitors in Alzheimer’s disease** | A. J. Martin and D. Kumar | *Manuscript under peer review* (2025).")
 
     st.markdown("*(Final journal citation and DOI will be updated here once published and archived.)*")
 

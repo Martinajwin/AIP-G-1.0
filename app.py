@@ -482,25 +482,23 @@ with tab3:
 # 4️⃣ REFERENCES & CITATION TAB
 # ==========================================================
 with tab4:
-    st.header("References, Citation & Intellectual Property")
+    st.header("References & Citation")
     
-    # --- ADDED MANIPAL COPYRIGHT SECTION FOR LEGAL COMPLIANCE ---
-    st.markdown("### Institutional Affiliation & Copyright")
-    st.markdown("**© 2026 Manipal Academy of Higher Education (MAHE). All rights reserved.**")
-    st.markdown("Developed by: **D. Kumar, A.J. Martin**")
-    st.markdown("*The algorithms, consensus logic, and trained models associated with IPred-S 1.0 are the intellectual property of Manipal Academy of Higher Education (MAHE).*")
+    st.markdown("### Developers & Affiliations")
+    st.markdown("- **D. Kumar** (Manipal Academy of Higher Education - MAHE, Manipal, Karnataka)")
+    st.markdown("- **A. J. Martin** (Nirmala College of Pharmacy, Muvattupuzha, Kerala)")
     st.markdown("---")
     
-    st.markdown("### How to Cite IPred-S 1.0 (Webtool Citation)")
-    st.markdown("If you use the IPred-S 1.0 webtool in research or publications, please cite:")
+    st.markdown("### How to Cite AIP-G 1.0 (Webtool Citation)")
+    st.markdown("If you use the AIP-G 1.0 webtool in research or publications, please cite:")
     
     # Using st.info creates a bright, highlighted box instead of dimmed text
-    st.info("**IPred-S 1.0 Webtool** | D. Kumar et al. | Manipal Academy of Higher Education (MAHE) | Version 1.0 (2026).  \n**Webtool URL:** *https://ipred-s-1-single-stage-screening.streamlit.app/*")
+    st.info("**AIP-G 1.0 Webtool** | D. Kumar, A. J. Martin | Version 1.0 (2026).  \n**Webtool URL:** *https://aip-g-1-two-stage-screening.streamlit.app/*")
 
-    st.markdown("### How to Cite the Associated Research Article (Pre-publication)")
-    st.markdown("This tool accompanies an unpublished research manuscript. Until acceptance, please cite the framework as follows:")
+    st.markdown("### How to Cite the Associated Research Article")
+    st.markdown("This tool accompanies a research manuscript currently under peer review. Please cite the framework as follows:")
     
-    st.info("**IPred-S 1.0: Consensus Machine Learning Framework for Predicting Soluble Epoxide Hydrolase (sEH) Inhibitors** | D. Kumar, A.J. Martin. | Manipal Academy of Higher Education (MAHE). | *Manuscript in preparation* (2026).")
+    st.info("**Integrated machine learning, molecular docking, and molecular dynamics simulations for in silico identification of GSK3β inhibitors for Alzheimer’s disease** | D. Kumar, A. J. Martin | *Under peer review* (2026).")
 
     st.markdown("*(Final journal citation and DOI will be updated here once published and archived.)*")
 
@@ -508,12 +506,11 @@ with tab4:
 
     st.markdown("""
 ### Scientific Literature & Computational Packages
-Below is the complete list of scientific literature, software tools, and computational packages used in the development, validation, and deployment of IPred-S 1.0.
+Below is the complete list of scientific literature, software tools, and computational packages used in the development, validation, and deployment of AIP-G 1.0.
 
 #### 1. Machine Learning & Data Processing
 * **Breiman, L.** Random Forests. *Machine Learning*, 45, 5–32 (2001).
-* **Cortes, C., Vapnik, V.** Support-vector networks. *Machine Learning*, 20, 273–297 (1995).
-* **Platt, J.** Probabilistic Outputs for Support Vector Machines and Comparisons to Regularized Likelihood Methods. *Advances in Large Margin Classifiers*, 10(3), 61-74 (1999).
+* **Geurts, P., Ernst, D., & Wehenkel, L.** Extremely randomized trees. *Machine Learning*, 36(1), 3-42 (2006).
 * **Pedregosa et al.** Scikit-Learn: Machine Learning in Python. *JMLR* 12, 2825–2830 (2011).
 * **Chicco, D., Jurman, G.** The advantages of the Matthews correlation coefficient (MCC). *BMC Genomics* 21, 6 (2020).
 
@@ -524,7 +521,6 @@ Below is the complete list of scientific literature, software tools, and computa
 
 #### 3. Model Interpretation & Performance Evaluation
 * **Powers, D.** Evaluation: Precision, Recall, F-measure, ROC, Informedness, Markedness. *JMLT* 2, 37–63 (2011).
-* **Hand, D.J., Till, R.J.** A Simple Generalisation of the AUC for Multiclass Problems. *Machine Learning* 45, 171–186 (2001).
 * **Trenton, M.** Balanced Accuracy and Its Advantages in Imbalanced Data. *Pattern Recogn. Lett.*, 120 (2019).
 
 #### 4. Applicability Domain (AD)
@@ -533,20 +529,19 @@ Below is the complete list of scientific literature, software tools, and computa
 
 #### 5. Datasets & Decoys
 * **Mysinger et al.** Directory of Useful Decoys, Enhanced (DUD-E). *J. Med. Chem.* 55, 14 (2012).
-* **sEH Bioassay Data:** Retrieved from peer-reviewed literature *(details in Supplementary Material of the upcoming manuscript)*.
+* **GSK-3β Bioassay Data:** Retrieved from peer-reviewed literature *(details in Supplementary Material of the upcoming manuscript)*.
 
-#### 6. Software, Platforms & Versions (Used in IPred-S 1.0)
+#### 6. Software, Platforms & Versions (Used in AIP-G 1.0)
 | Software / Package | Version | Purpose |
 | :--- | :--- | :--- |
 | **Python** | 3.10 | Core Development |
 | **Streamlit** | 1.50 | Web Interface Deployment |
-| **RDKit** | 2025.03.6 | SMILES parsing and 3D embedding |
+| **RDKit** | 2025.03.6 | SMILES parsing |
 | **Mordred** | 1.2.0 | Topological Descriptor generation |
 | **scikit-learn** | 1.4.2 | Model inference and Normalization |
 | **NumPy** | 1.25.2 | Numerical computing |
 | **Pandas** | 2.3.2 | DataFrame processing |
 | **Graphviz** | latest | Flowchart rendering |
-| **Matplotlib** | 3.10.6 | Internal plotting and validation |
     """)
     
 

@@ -498,9 +498,7 @@ with tab4:
     st.markdown("### How to Cite the Associated Research Article")
     st.markdown("This tool accompanies a research manuscript currently under peer review. Please cite the framework as follows:")
     
-    st.info("**Integrated machine learning, molecular docking, and molecular dynamics simulations for in silico identification of GSK3β inhibitors for Alzheimer’s disease** | D. Kumar, A. J. Martin | *Under peer review* (2026).")
-
-    st.markdown("*(Final journal citation and DOI will be updated here once published and archived.)*")
+    st.info("Kumar, D., Martin, A.J. Integrated machine learning, molecular docking, and molecular dynamics simulations for in silico identification of GSK3β inhibitors for Alzheimer’s disease. Sci Rep (2026). https://doi.org/10.1038/s41598-026-59744-9")
 
     st.markdown("---")
 
